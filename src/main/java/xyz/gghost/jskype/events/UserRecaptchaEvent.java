@@ -6,8 +6,9 @@ import xyz.gghost.jskype.event.Event;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class UserRecaptchaEvent extends Event {
-    private final String image;
-    private final String username;
-    private String answer;
+public class UserRecaptchaEvent extends Event
+{
+	private final String image;
+	private final String username;
+	private String answer;
 }
