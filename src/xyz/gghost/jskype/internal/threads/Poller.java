@@ -137,7 +137,7 @@ public class Poller extends Thread
 						catch (Exception e)
 						{
 							// We came online
-							api.s(status);
+							api.setOnlineStatus(status);
 						}
 					}
 

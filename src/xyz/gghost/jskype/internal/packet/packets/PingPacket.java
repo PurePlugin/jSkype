@@ -18,7 +18,7 @@ public class PingPacket
 		PacketBuilder ping = new PacketBuilder(api);
 		ping.setType(RequestType.POST);
 		ping.setUrl("https://web.skype.com/api/v1/session-ping");
-		ping.setData("sessionId=" + api.getUuid().toString());
+		ping.setData("sessionId=" + api.getUniqueId().toString());
 		ping.setIsForm(true);
 		String data = ping.makeRequest();
 		if (data == null || data.equals("---"))

@@ -41,36 +41,49 @@ import xyz.gghost.jskype.user.User;
 public class SkypeAPI
 {
 	@Getter
-	private List<Group> groups = new ArrayList<Group>();
+	private final UUID uniqueId = UUID.randomUUID();
+
 	@Getter
-	private List<User> contacts = new ArrayList<User>();
+	private final String username;
 	@Getter
-	private LoginTokens loginTokens = new LoginTokens();
+	private final String password;
+
 	@Getter
 	private EventBus eventBus = new EventBus();
+
 	@Getter
-	private HashMap<String, MessageHistory> a = new HashMap<String, MessageHistory>();
+	private List<Group> groups = new ArrayList<>();
+	@Getter
+	private List<User> contacts = new ArrayList<>();
+
+	@Getter
+	private LoginTokens loginTokens = new LoginTokens();
+
+	@Getter
+	private HashMap<String, MessageHistory> a = new HashMap<>();
+
 	@Setter
 	@Getter
 	private boolean allowLogging = true;
-	@Getter
-	private String username;
-	@Getter
-	UUID uuid = UUID.randomUUID();
-	@Getter
-	private String password;
+
 	@Getter
 	@Setter
 	private boolean loaded;
-	private OnlineStatus s = OnlineStatus.ONLINE;
+
+	@Getter
+	@Setter
+	private OnlineStatus onlineStatus = OnlineStatus.ONLINE;
+
 	private Poller poller;
 	private Thread contactUpdater;
 	private Thread pinger;
 	private ConvoUpdater convoUpdater;
 	private PendingContactEventThread pendingContactThread;
+
 	@Getter
 	@Setter
 	private boolean debugMode = false;
+
 	@Getter
 	@Setter
 	private boolean reloggin = false;
@@ -141,26 +154,6 @@ public class SkypeAPI
 		poller.interrupt();
 		convoUpdater.interrupt();
 		pendingContactThread.interrupt();
-	}
-
-	/**
-	 * Get your current online status
-	 * 
-	 * @return
-	 */
-	public OnlineStatus getOnlineStatus()
-	{
-		return s;
-	}
-
-	/**
-	 * Do not use
-	 * 
-	 * @param status
-	 */
-	public void s(OnlineStatus status)
-	{
-		s = status;
 	}
 
 	/**
