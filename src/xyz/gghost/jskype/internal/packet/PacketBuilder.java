@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import lombok.Getter;
 import lombok.Setter;
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 
 public class PacketBuilder
@@ -103,10 +104,12 @@ public class PacketBuilder
 			}
 			else if (code == 401)
 			{
-				api.log("\n\nBad login...");
-				api.log(this.url + " returned 401. \nHave you been running jSkype for more than 2 days?\nWithin 4 seconds the ping-er should relog you in.\n\n");
+				api.getLogger().log(Level.ERROR, "Bad login...");
+				api.getLogger().log(Level.ERROR, this.url + " returned 401. \nHave you been running jSkype for more than 2 days?\nWithin 4 seconds the ping-er should relog you in.\n\n");
+
 				for (Header header : headers)
-					api.log(header.getType() + ": " + header.getData());
+					api.getLogger().log(Level.ERROR, header.getType() + ": " + header.getData());
+
 				return "---";
 			}
 			else if (code == 204)
@@ -117,7 +120,8 @@ public class PacketBuilder
 			{
 				if (code == 404 && url.toLowerCase().contains("endpoint"))
 				{
-					api.log("Lost connection to skype.\nReloggin!");
+					api.getLogger().log(Level.ERROR, "Lost connection to skype.\nReloggin!");
+
 					try
 					{
 						api.login();
@@ -133,20 +137,21 @@ public class PacketBuilder
 					return null;
 
 				// Debug info
-				api.log("Error contacting skype\nUrl: " + url + "\nCode: " + code + "\nData: " + data + "\nType: " + type);
+				api.getLogger().log(Level.ERROR, "Error contacting skype\nUrl: " + url + "\nCode: " + code + "\nData: " + data + "\nType: " + type);
+
 				for (Header header : headers)
-					api.log(header.getType() + ": " + header.getData());
+					api.getLogger().log(Level.ERROR, header.getType() + ": " + header.getData());
 				return null;
 			}
 		}
 		catch (Exception e)
 		{
 
-			api.log("================================================");
-			api.log("========Unable to request  the skype api========");
-			api.log("================================================");
-			api.log("Error: " + e.getMessage());
-			api.log("URL: " + url);
+			api.getLogger().log(Level.ERROR, "================================================");
+			api.getLogger().log(Level.ERROR, "========Unable to request  the skype api========");
+			api.getLogger().log(Level.ERROR, "================================================");
+			api.getLogger().log(Level.ERROR, "Error: " + e.getMessage());
+			api.getLogger().log(Level.ERROR, "URL: " + url);
 
 			return null;
 		}

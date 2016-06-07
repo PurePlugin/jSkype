@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import lombok.AllArgsConstructor;
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
@@ -23,14 +24,15 @@ public class PingPacket
 		String data = ping.makeRequest();
 		if (data == null || data.equals("---"))
 		{
-			api.log("Skype login expired... Reconnecting");
+			api.getLogger().log(Level.ERROR, "Skype login expired... Reconnecting");
+
 			try
 			{
 				api.login();
 			}
 			catch (Exception e)
 			{
-				api.log("Failed to reconnect. ");
+				api.getLogger().log(Level.ERROR, "Failed to reconnect. ");
 			}
 		}
 

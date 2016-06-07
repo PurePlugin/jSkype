@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import lombok.Getter;
 import lombok.Setter;
+import xyz.gghost.jskype.command.CommandBus;
 import xyz.gghost.jskype.event.EventBus;
 import xyz.gghost.jskype.exception.BadResponseException;
 import xyz.gghost.jskype.exception.NoPendingContactsException;
@@ -55,38 +56,33 @@ public class SkypeAPI
 	private List<Group> groups = new ArrayList<>();
 	@Getter
 	private List<User> contacts = new ArrayList<>();
-
 	@Getter
 	private LoginTokens loginTokens = new LoginTokens();
-
 	@Getter
 	private HashMap<String, MessageHistory> a = new HashMap<>();
-
 	@Setter
 	@Getter
 	private boolean allowLogging = true;
-
 	@Getter
 	@Setter
 	private boolean loaded;
-
 	@Getter
 	@Setter
 	private OnlineStatus onlineStatus = OnlineStatus.ONLINE;
-
 	private Poller poller;
 	private Thread contactUpdater;
 	private Thread pinger;
 	private ConvoUpdater convoUpdater;
 	private PendingContactEventThread pendingContactThread;
-
-	@Getter
-	@Setter
-	private boolean debugMode = false;
-
 	@Getter
 	@Setter
 	private boolean reloggin = false;
+
+	@Getter
+	private Logger logger = new Logger();
+
+	@Getter
+	private CommandBus commandBus = new CommandBus(this);
 
 	public SkypeAPI(String username, String password)
 	{
@@ -108,16 +104,6 @@ public class SkypeAPI
 		init();
 		updateStatus(OnlineStatus.ONLINE);
 		return this;
-	}
-
-	/**
-	 * Make shift logger... rly bad. Just System.out.println if
-	 * SkypeAPI#allowLogging is true
-	 */
-	public void log(String msg)
-	{
-		if (allowLogging)
-			System.out.println(msg);
 	}
 
 	/**

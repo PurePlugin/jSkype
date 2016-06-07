@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.impl.LocalAccountImpl;
 import xyz.gghost.jskype.internal.impl.UserImpl;
@@ -113,9 +114,10 @@ public class GetProfilePacket
 		{
 			// Display debug info and return minimalistic data about the user
 			// TODO: retry
-			api.log("\nFailed to get profile of " + username + " due to an internal server error");
-			api.log("Someone may have blocked you or have high privacy settings.");
-			api.log("You can ignore this...");
+
+			api.getLogger().log(Level.ERROR, "Failed to get profile of " + username + " due to an internal server error");
+			api.getLogger().log(Level.ERROR, "Someone may have blocked you or have high privacy settings.");
+			api.getLogger().log(Level.ERROR, "You can ignore this...");
 
 			return minorUserData(username);
 		}
@@ -136,8 +138,9 @@ public class GetProfilePacket
 		}
 		catch (Exception e)
 		{
-			api.log("Failed to get profile of " + username);
-			api.log("Data : " + data);
+			api.getLogger().log(Level.ERROR, "Failed to get profile of " + username);
+			api.getLogger().log(Level.ERROR, "Data : " + data);
+
 			e.printStackTrace();
 			return minorUserData(username);
 		}
@@ -195,8 +198,9 @@ public class GetProfilePacket
 		}
 		catch (Exception e)
 		{
-			api.log("Failed to get profile of arraylist");
-			api.log("Data : " + data);
+			api.getLogger().log(Level.ERROR, "Failed to get profile of arraylist");
+			api.getLogger().log(Level.ERROR, "Data : " + data);
+
 			e.printStackTrace();
 			return null;
 		}

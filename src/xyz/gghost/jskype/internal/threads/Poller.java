@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import xyz.gghost.jskype.Group;
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.events.ChatPictureChangedEvent;
 import xyz.gghost.jskype.events.TopicChangedEvent;
@@ -253,8 +254,8 @@ public class Poller extends Thread
 			}
 			catch (Exception e)
 			{
-				api.log("Failed to process data from skype.\nMessage: " + object + "Data: " + data + "\nError: " + e.getMessage());
-				api.log("\n\nIs this a new convo?\nWait a few seconds!");
+				api.getLogger().log(Level.ERROR, "Failed to process data from skype.\nMessage: " + object + "Data: " + data + "\nError: " + e.getMessage());
+				api.getLogger().log(Level.ERROR, "Is this a new convo?\nWait a few seconds!");
 				e.printStackTrace();
 			}
 		}
@@ -355,15 +356,16 @@ public class Poller extends Thread
 		}
 		catch (Exception e)
 		{
-			api.log("#################################################");
+			api.getLogger().log(Level.ERROR, "#################################################");
 			if (api.isAllowLogging())
 				e.printStackTrace();
-			api.log("#################################################");
-			api.log("Failed to update group info. Have we just loaded?");
+			api.getLogger().log(Level.ERROR, "#################################################");
+			api.getLogger().log(Level.ERROR, "Failed to update group info. Have we just loaded?");
+
 			try
 			{
-				api.log("Resource Link: " + object.getString("resourceLink"));
-				api.log("Group ID: " + object.getString("resourceLink").split("19:")[1].split("@")[0] + "@thread.skype");
+				api.getLogger().log(Level.ERROR, "Resource Link: " + object.getString("resourceLink"));
+				api.getLogger().log(Level.ERROR, "Group ID: " + object.getString("resourceLink").split("19:")[1].split("@")[0] + "@thread.skype");
 			}
 			catch (Exception ea)
 			{
@@ -395,6 +397,7 @@ public class Poller extends Thread
 		// If failed to get user - get the users info by calling skypes api
 		if (user == null)
 			user = new GetProfilePacket(api).getUser(username);
+
 		return user;
 	}
 
@@ -417,5 +420,4 @@ public class Poller extends Thread
 			e.printStackTrace();
 		}
 	}
-
 }

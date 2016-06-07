@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.exception.BadResponseException;
 import xyz.gghost.jskype.exception.FailedToGetContactsException;
@@ -37,8 +38,8 @@ public class GetContactsPacket
 
 		if (a == null)
 		{
-			api.log("Failed to request Skype for your contacts.");
-			api.log("Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
+			api.getLogger().log(Level.ERROR, "Failed to request Skype for your contacts.");
+			api.getLogger().log(Level.ERROR, "Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
 
 			if (api.getContacts().size() == 0)
 				api.getContacts().add(api.getSimpleUser(api.getUsername()));

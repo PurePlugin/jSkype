@@ -10,6 +10,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.exception.BadResponseException;
 import xyz.gghost.jskype.exception.BadUsernamePasswordException;
@@ -94,7 +95,7 @@ public class Auth
 			}
 			else if (loginResponseDocument.html().contains("var skypeHipUrl = \"https://clien"))
 			{
-				account.log("Failed to connect due to a recaptcha!");
+				account.getLogger().log(Level.ERROR, "Failed to connect due to a recaptcha!");
 				throw new RecaptchaException();
 			}
 			else
@@ -134,7 +135,7 @@ public class Auth
 
 		if (!reg(api))
 		{
-			api.log("Failed to get update data from skype due to a login error... Attempting to relogin, however this wont work until the auto pinger kicks in.");
+			api.getLogger().log(Level.ERROR, "Failed to get update data from skype due to a login error... Attempting to relogin, however this wont work until the auto pinger kicks in.");
 			authLogin(api);
 
 			try

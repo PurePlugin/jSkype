@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 
 public class PacketBuilderUploader extends PacketBuilder
@@ -76,8 +77,8 @@ public class PacketBuilderUploader extends PacketBuilder
 			}
 			else if (responseCode == 401)
 			{
-				api.log("\n\nBad login...");
-				api.log(this.url + " returned 401. \nHave you been running jSkype for more than 2 days?\nWithin 4 seconds the ping-er should relog you in.\n\n");
+				api.getLogger().log(Level.ERROR, "\n\nBad login...");
+				api.getLogger().log(Level.ERROR, this.url + " returned 401. \nHave you been running jSkype for more than 2 days?\nWithin 4 seconds the ping-er should relog you in.\n\n");
 				return "---";
 			}
 			else if (responseCode == 204)
@@ -90,16 +91,16 @@ public class PacketBuilderUploader extends PacketBuilder
 				System.out.println("Error contacting skype\nUrl: " + url + "\nCode: " + responseCode + "\nData: " + Arrays.toString(data));
 				for (Header header : headers)
 				{
-					api.log(header.getType() + ": " + header.getData());
+					api.getLogger().log(Level.ERROR, header.getType() + ": " + header.getData());
 				}
 				return null;
 			}
 		}
 		catch (Exception e)
 		{
-			api.log("================================================");
-			api.log("========Unable to request  the skype api========");
-			api.log("================================================");
+			api.getLogger().log(Level.ERROR, "================================================");
+			api.getLogger().log(Level.ERROR, "========Unable to request  the skype api========");
+			api.getLogger().log(Level.ERROR, "================================================");
 			e.printStackTrace();
 			return null;
 		}

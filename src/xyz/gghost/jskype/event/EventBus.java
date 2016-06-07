@@ -71,8 +71,7 @@ public final class EventBus
 		}
 	}
 
-	@SuppressWarnings(
-	{ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	public <T extends Event> T post(T event)
 	{
 		Preconditions.checkNotNull(event, "event cannot be null");

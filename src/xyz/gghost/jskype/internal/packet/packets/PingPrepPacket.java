@@ -8,6 +8,7 @@ import java.net.URL;
 import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.Header;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
@@ -25,19 +26,19 @@ public class PingPrepPacket
 
 		if (id == null)
 		{
-			api.log("Failed to get id");
+			api.getLogger().log(Level.ERROR, "Failed to get id");
 			return null;
 		}
 
 		if (!allowRead(id, groupId))
 		{
-			api.log("Failed to set perms");
+			api.getLogger().log(Level.ERROR, "Failed to set perms");
 			return null;
 		}
 
 		if (!writeData(id, url))
 		{
-			api.log("Failed to set image data");
+			api.getLogger().log(Level.ERROR, "Failed to set image data");
 			return null;
 		}
 		return id;
@@ -49,19 +50,19 @@ public class PingPrepPacket
 
 		if (id == null)
 		{
-			api.log("Failed to get id");
+			api.getLogger().log(Level.ERROR, "Failed to get id");
 			return null;
 		}
 
 		if (!allowRead(id, groupId))
 		{
-			api.log("Failed to set perms");
+			api.getLogger().log(Level.ERROR, "Failed to set perms");
 			return null;
 		}
 
 		if (!writeData(id, url))
 		{
-			api.log("Failed to set image data");
+			api.getLogger().log(Level.ERROR, "Failed to set image data");
 			return null;
 		}
 		return id;

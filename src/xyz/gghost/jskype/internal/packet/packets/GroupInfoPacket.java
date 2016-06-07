@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.Group;
+import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.impl.GroupImpl;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
@@ -61,9 +62,8 @@ public class GroupInfoPacket
 			}
 			catch (Exception e)
 			{
-				api.log("Failed to get a members info");
-				if (api.isDebugMode())
-					e.printStackTrace();
+				api.getLogger().log(Level.ERROR, "Failed to get a members info");
+				api.getLogger().log(Level.DEBUG, e.getLocalizedMessage());
 			}
 		}
 		return group;
@@ -104,9 +104,9 @@ public class GroupInfoPacket
 				}
 				catch (Exception e)
 				{
-					api.log("Failed to get a members info");
-					if (api.isDebugMode())
-						e.printStackTrace();
+					api.getLogger().log(Level.ERROR, "Failed to get a members info");
+					api.getLogger().log(Level.DEBUG, e.getLocalizedMessage());
+
 				}
 			}
 			return groupMembers;
