@@ -1,5 +1,9 @@
 package xyz.gghost.jskype.event;
 
-public class Event {
+import lombok.Data;
 
+@Data
+public abstract class Event
+{
+	private boolean cancelled;
 }
