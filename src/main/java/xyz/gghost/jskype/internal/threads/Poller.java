@@ -168,9 +168,12 @@ public class Poller extends Thread
 						String oldTopic = api.getGroupById(chat.getId()).getTopic();
 
 						User user = getUser(username, chat);
-						api.getEventBus().post(new TopicChangedEvent(chat, user, topic, oldTopic));
 
-						((GroupImpl) chat).setTopic(topic);
+						TopicChangedEvent event = new TopicChangedEvent(chat, user, topic, oldTopic);
+
+						api.getEventBus().post(event);
+
+						((GroupImpl) chat).setTopic(event.isCancelled() ? oldTopic : topic);
 					}
 
 					if (!resource.isNull("messagetype") && resource.getString("messagetype").equals("ThreadActivity/PictureUpdate"))
