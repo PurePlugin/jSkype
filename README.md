@@ -94,27 +94,18 @@ MessageBuilder is the builder class for constructing string that is safe to pass
 In order to listen for an event, create a class that implements EventListener, and register it by calling "api.getEventManager().registerListener(new YourListener(skype));" All event's can be found the "xyz.gghost.jskype.api" package and in the event section of this readme file. 
 
 ```java
-public class ExampleListener implements EventListener {
-    SkypeAPI api;
-    public ExampleListener(SkypeAPI api){
+public class ExampleListener
+{
+    private final SkypeAPI api;
+    
+    public ExampleListener(SkypeAPI api)
+    {
         this.api = api;
-    }
-    public void join(UserJoinEvent e){ //If a method has the event as the only argument, it will get invoked once the events trigger(join/chat/leave/etc) has been called. 
-        System.out.println(e.getUser().getDisplayName() + " has joined " + e.getGroup().getChatId());
-    }
-}
-
-public class Test {
-    static boolean isRunning = true;
-    public static void main(String[] args) {
-        SkypeAPI skype = new SkypeAPI("NotGhostBot", "{password here}"); //login
-        System.out.println("Loaded Skype..."); //Tell the user that skype has fully initialized - getting contacts, recent, etc can take a few seconds
-
-        skype.getEventManager().registerListener(new ExampleListener(skype)); //Register listener
-
-        while (isRunning){} //This program is multithreaded and the main thread doesn't get used, so you'll want an (infinite) delay to keep the program open.
-        skype.stop(); //Close Skype related threads - shutting it down
-
+        
+        api.getEventBus().register(UserJoinEvent.class, event ->
+        {
+          System.out.println(e.getUser().getDisplayName() + " has joined " + e.getGroup().getChatId());
+        });
     }
 }
 ```
