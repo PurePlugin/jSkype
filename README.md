@@ -104,7 +104,7 @@ public class ExampleListener
         
         api.getEventBus().register(UserJoinEvent.class, event ->
         {
-          System.out.println(e.getUser().getDisplayName() + " has joined " + e.getGroup().getChatId());
+            System.out.println(event.getUser().getDisplayName() + " has joined " + event.getGroup().getChatId());
         });
     }
 }
