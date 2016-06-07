@@ -70,6 +70,7 @@ SkypeAPI skype = new SkypeAPI("NotGhostBot", "Password").login();
 #Sending chat messages
 Sending a message to all contacts example:
 ```java
+skype.getContacts().forEach(contact -> contact.sendMessage("Hi"));
 ```
 Sending a message to all recent groups and contacts example:
 ```java
