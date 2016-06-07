@@ -1,7 +1,13 @@
 package xyz.gghost.jskype.internal.packet.packets;
 
-import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import org.json.JSONArray;
+import org.json.JSONObject;
+
+import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.exception.BadResponseException;
 import xyz.gghost.jskype.exception.FailedToGetContactsException;
@@ -10,65 +16,63 @@ import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.user.User;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+@AllArgsConstructor
+public class GetContactsPacket
+{
+	private final SkypeAPI api;
 
-public class GetContactsPacket {
+	public void setupContact() throws FailedToGetContactsException, BadResponseException
+	{
+		List<User> contacts;
+		HashMap<String, Boolean> blocked = new HashMap<String, Boolean>();
+		ArrayList<String> usernames = new ArrayList<String>();
 
-    private final SkypeAPI api;
+		PacketBuilder packet = new PacketBuilder(api);
+		packet.setUrl("https://contacts.skype.com/contacts/v1/users/" + api.getUsername().toLowerCase() + "/contacts?filter=contacts");
+		packet.setType(RequestType.OPTIONS);
+		packet.getData();
+		packet.setType(RequestType.GET);
 
-    public GetContactsPacket(SkypeAPI api) {
-        this.api = api;
-    }
-    public void setupContact() throws FailedToGetContactsException, BadResponseException {
+		String a = packet.makeRequest();
 
-        List<User> contacts;
-        HashMap<String, Boolean> blocked = new HashMap<String, Boolean>();
-        ArrayList<String> usernames = new ArrayList<String>();
+		if (a == null)
+		{
+			api.log("Failed to request Skype for your contacts.");
+			api.log("Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
 
-        PacketBuilder packet = new PacketBuilder(api);
-        packet.setUrl("https://contacts.skype.com/contacts/v1/users/" + api.getUsername().toLowerCase() + "/contacts?filter=contacts");
-        packet.setType(RequestType.OPTIONS);
-        packet.getData();
-        packet.setType(RequestType.GET);
+			if (api.getContacts().size() == 0)
+				api.getContacts().add(api.getSimpleUser(api.getUsername()));
 
-        String a = packet.makeRequest();
+			return;
+		}
 
-        if (a == null) {
-            api.log("Failed to request Skype for your contacts.");
-            api.log("Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
+		try
+		{
+			JSONObject jsonObject = new JSONObject(a);
+			JSONArray lineItems = jsonObject.getJSONArray("contacts");
 
-            if (api.getContacts().size() == 0)
-                api.getContacts().add(api.getSimpleUser(api.getUsername()));
+			for (Object o : lineItems)
+			{
+				JSONObject jsonLineItem = (JSONObject) o;
 
-            return;
-        }
+				usernames.add(jsonLineItem.getString("id"));
+				blocked.put(jsonLineItem.getString("id"), jsonLineItem.getBoolean("blocked"));
+			}
 
-
-        try {
-            JSONObject jsonObject = new JSONObject(a);
-            JSONArray lineItems = jsonObject.getJSONArray("contacts");
-
-            for (Object o : lineItems) {
-                JSONObject jsonLineItem = (JSONObject) o;
-
-                usernames.add(jsonLineItem.getString("id"));
-                blocked.put(jsonLineItem.getString("id"), jsonLineItem.getBoolean("blocked"));
-            }
-
-            contacts = new GetProfilePacket(api).getUsers(usernames);
-            if (contacts != null) {
-                for (User user : contacts) {
-                    ((UserImpl)user).setContact(true);
-                    ((UserImpl)user).setBlocked(blocked.get(user.getUsername()));
-                    api.updateContact(user);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+			contacts = new GetProfilePacket(api).getUsers(usernames);
+			if (contacts != null)
+			{
+				for (User user : contacts)
+				{
+					((UserImpl) user).setContact(true);
+					((UserImpl) user).setBlocked(blocked.get(user.getUsername()));
+					api.updateContact(user);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
 }
-

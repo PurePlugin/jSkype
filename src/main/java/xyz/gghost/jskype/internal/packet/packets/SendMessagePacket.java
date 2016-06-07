@@ -1,82 +1,74 @@
 package xyz.gghost.jskype.internal.packet.packets;
 
-
 import org.json.JSONObject;
+
+import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
-import xyz.gghost.jskype.message.Message;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
+import xyz.gghost.jskype.message.Message;
 
-public class SendMessagePacket {
+@AllArgsConstructor
+public class SendMessagePacket
+{
+	private final SkypeAPI api;
 
-    private SkypeAPI api;
+	public Message editMessage(Message msg, String edit)
+	{
+		PacketBuilder packet = new PacketBuilder(api);
+		packet.setType(RequestType.POST);
 
-    public SendMessagePacket(SkypeAPI api) {
-        this.api = api;
-    }
+		msg.setMessage(edit);
 
-    public Message editMessage(Message msg, String edit) {
-        PacketBuilder packet = new PacketBuilder(api);
-        packet.setType(RequestType.POST);
+		if (edit == null || msg == null)
+			return msg;
 
-        msg.setMessage(edit);
+		packet.setData(new JSONObject().put("content", msg.getMessage()).put("messagetype", "RichText").put("contenttype", "text").put("skypeeditedid", msg.getId()).toString());
 
-        if (edit == null || msg == null)
-            return msg;
+		packet.setUrl(msg.getUpdateUrl());
+		packet.makeRequest();
 
-        packet.setData(new JSONObject().put("content", msg.getMessage())
-                .put("messagetype", "RichText")
-                .put("contenttype", "text")
-                .put("skypeeditedid", msg.getId())
-                .toString());
+		return msg;
+	}
 
-        packet.setUrl(msg.getUpdateUrl());
-        packet.makeRequest();
+	public Message sendPing(String longId, Message msg, String ids)
+	{
+		String id = String.valueOf(System.currentTimeMillis());
+		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
+		msg.setSender(api.getSimpleUser(api.getUsername()));
+		msg.setUpdateUrl(url);
+		msg.setTime(id);
+		msg.setId(id);
 
-        return msg;
-    }
+		PacketBuilder packet = new PacketBuilder(api);
+		packet.setType(RequestType.POST);
+		String data = "{content: \"<URIObject type=\\\"Picture.1\\\" uri=\\\"https://api.asm.skype.com/v1/objects/" + ids + "\\\" url_thumbnail=\\\"https://api.asm.skype.com/v1/objects/" + ids + "/views/imgt1\\\">To view this shared photo, go to: <a href=\\\"https://api.asm.skype.com/s/i?" + ids + "\\\">https://api.asm.skype.com/s/i?" + ids + "<\\/a><OriginalName v=\\\"^005CFF2010F86CC63570CA528D9B2CCFE3BF3B54DF8A01E92E^pimgpsh_thumbnail_win_distr.jpg\\\"/><meta type=\\\"photo\\\" originalName=\\\"^005CFF2010F86CC63570CA528D9B2CCFE3BF3B54DF8A01E92E^pimgpsh_thumbnail_win_distr.jpg\\\"/><\\/URIObject>\", messagetype: \"RichText/UriObject\", contenttype: \"text\", clientmessageid: \"" + id + "\"}";
+		packet.setData(data);
+		packet.setUrl(url);
+		packet.makeRequest();
 
-    public Message sendPing(String longId, Message msg, String ids) {
-        String id = String.valueOf(System.currentTimeMillis());
-        String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
-        msg.setSender(api.getSimpleUser(api.getUsername()));
-        msg.setUpdateUrl(url);
-        msg.setTime(id);
-        msg.setId(id);
+		return msg;
+	}
 
-        PacketBuilder packet = new PacketBuilder(api);
-        packet.setType(RequestType.POST);
-        String data = "{content: \"<URIObject type=\\\"Picture.1\\\" uri=\\\"https://api.asm.skype.com/v1/objects/" + ids + "\\\" url_thumbnail=\\\"https://api.asm.skype.com/v1/objects/"+ ids + "/views/imgt1\\\">To view this shared photo, go to: <a href=\\\"https://api.asm.skype.com/s/i?" + ids + "\\\">https://api.asm.skype.com/s/i?" + ids + "<\\/a><OriginalName v=\\\"^005CFF2010F86CC63570CA528D9B2CCFE3BF3B54DF8A01E92E^pimgpsh_thumbnail_win_distr.jpg\\\"/><meta type=\\\"photo\\\" originalName=\\\"^005CFF2010F86CC63570CA528D9B2CCFE3BF3B54DF8A01E92E^pimgpsh_thumbnail_win_distr.jpg\\\"/><\\/URIObject>\", messagetype: \"RichText/UriObject\", contenttype: \"text\", clientmessageid: \"" + id + "\"}";
-        packet.setData(data);
-        packet.setUrl(url);
-        packet.makeRequest();
+	public Message sendMessage(String longId, Message msg)
+	{
 
-        return msg;
-    }
+		String id = String.valueOf(System.currentTimeMillis());
+		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
 
-    public Message sendMessage(String longId, Message msg) {
+		msg.setSender(api.getSimpleUser(api.getUsername()));
+		msg.setUpdateUrl(url);
+		msg.setTime(id);
+		msg.setId(id);
 
-        String id = String.valueOf(System.currentTimeMillis());
-        String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
+		PacketBuilder packet = new PacketBuilder(api);
+		packet.setType(RequestType.POST);
 
-        msg.setSender(api.getSimpleUser(api.getUsername()));
-        msg.setUpdateUrl(url);
-        msg.setTime(id);
-        msg.setId(id);
+		packet.setData(new JSONObject().put("content", msg.getMessage()).put("messagetype", "RichText").put("contenttype", "text").put("clientmessageid", id).toString());
 
-        PacketBuilder packet = new PacketBuilder(api);
-        packet.setType(RequestType.POST);
+		packet.setUrl(url);
+		packet.makeRequest();
 
-        packet.setData(new JSONObject().put("content", msg.getMessage())
-                .put("messagetype", "RichText")
-                .put("contenttype", "text")
-                .put("clientmessageid", id)
-                .toString());
-
-        packet.setUrl(url);
-        packet.makeRequest();
-
-        return msg;
-    }
-
+		return msg;
+	}
 }

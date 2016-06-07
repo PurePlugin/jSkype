@@ -11,7 +11,6 @@ import xyz.gghost.jskype.user.User;
  */
 public class PendingContactEventThread extends Thread
 {
-
 	private final SkypeAPI api;
 	private boolean firstTime = true;
 	private ArrayList<String> lastUsers = new ArrayList<String>();
@@ -31,13 +30,8 @@ public class PendingContactEventThread extends Thread
 				ArrayList<User> newRequests = api.getContactRequests();
 				if (!firstTime)
 				{
-					ArrayList<String> newLastUsers = new ArrayList<String>(); // allows
-																				// other
-																				// clients
-																				// to
-																				// accept
-																				// the
-																				// request
+					// Allows other clients to accept the request!
+					ArrayList<String> newLastUsers = new ArrayList<String>();
 					for (User user : newRequests)
 					{
 						if (!lastUsers.contains(user.getUsername()))

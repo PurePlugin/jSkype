@@ -1,125 +1,181 @@
 package xyz.gghost.jskype.internal.impl;
 
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 import xyz.gghost.jskype.Group;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
-import xyz.gghost.jskype.message.Message;
-import xyz.gghost.jskype.message.MessageHistory;
 import xyz.gghost.jskype.internal.packet.packets.PingPrepPacket;
 import xyz.gghost.jskype.internal.packet.packets.SendMessagePacket;
 import xyz.gghost.jskype.internal.packet.packets.UserManagementPacket;
+import xyz.gghost.jskype.message.Message;
+import xyz.gghost.jskype.message.MessageHistory;
 import xyz.gghost.jskype.user.GroupUser;
-
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Ghost on 19/09/2015.
  */
-public class GroupImpl implements Group {
+public class GroupImpl implements Group
+{
+	@Setter
+	private String topic = "";
 
-    @Setter @Getter private String topic = "";
-    @Setter @Getter private String id = "";
-    @Setter @Getter private String pictureUrl = "";
-    private SkypeAPI api;
-    @Getter private List<GroupUser> clients = new ArrayList<GroupUser>();
+	@Setter
+	private String id = "";
 
-    public GroupImpl(SkypeAPI api, String longId){
-        this.id = longId;
-        this.api = api;
-    }
+	@Setter
+	@Getter
+	private String pictureUrl = "";
 
-    public MessageHistory getMessageHistory(){
-        if(api.getA().containsKey(id))
-            return api.getA().get(id);
-        MessageHistory history = new MessageHistory(id, api);
-        api.getA().put(id, history);
-        return history;
-    }
+	private SkypeAPI api;
 
-    public void kick(String usr) {
-        new UserManagementPacket(api).kickUser(getLongId(), usr);
-    }
+	private List<GroupUser> clients = new ArrayList<GroupUser>();
 
-    public void add(String usr) {
-        new UserManagementPacket(api).addUser(getLongId(), usr);
-    }
+	public GroupImpl(SkypeAPI api, String longId)
+	{
+		this.id = longId;
+		this.api = api;
+	}
 
-    public void setAdmin(String usr, boolean admin)
-    {
-        if (admin) {
-            new UserManagementPacket(api).promoteUser(getLongId(), usr);
-        }else
-            add(usr);
-    }
+	@Override
+	public MessageHistory getMessageHistory()
+	{
+		if (api.getA().containsKey(id))
+			return api.getA().get(id);
 
-    public String getId() {
-        try {
-            return id.split("@")[0].split(":")[1];
-        }catch(Exception e){
-            try {
-                return id.split("8:")[1];
-            }catch(Exception je){
-                return id;
-            }
-        }
-    }
+		MessageHistory history = new MessageHistory(id, api);
+		api.getA().put(id, history);
+		return history;
+	}
 
-    public String getLongId() {
-        return id;
-    }
+	@Override
+	public void kick(String usr)
+	{
+		new UserManagementPacket(api).kickUser(getLongId(), usr);
+	}
 
-    public Message sendMessage(Message msg) {
-        return new SendMessagePacket(api).sendMessage(id, msg);
-    }
-    public Message sendMessage(String msg) {
-        return new SendMessagePacket(api).sendMessage(id, new Message(msg));
-    }
-    public Message sendImage(File url) {
-        return new SendMessagePacket(api).sendPing(id, new Message(""), new PingPrepPacket(api).urlToId(url, id));
-    }
+	@Override
+	public void add(String usr)
+	{
+		new UserManagementPacket(api).addUser(getLongId(), usr);
+	}
 
-    public Message sendImage(URL url) {
-        return new SendMessagePacket(api).sendPing(id, new Message(""), new PingPrepPacket(api).urlToId(url.toString(), id));
-    }
-    public List<GroupUser> getClients() {
-        return clients;
-    }
+	@Override
+	public void setAdmin(String usr, boolean admin)
+	{
+		if (admin)
+		{
+			new UserManagementPacket(api).promoteUser(getLongId(), usr);
+		}
+		else
+			add(usr);
+	}
 
-    public String getTopic() {
-        return topic;
-    }
+	@Override
+	public String getId()
+	{
+		try
+		{
+			return id.split("@")[0].split(":")[1];
+		}
+		catch (Exception e)
+		{
+			try
+			{
+				return id.split("8:")[1];
+			}
+			catch (Exception je)
+			{
+				return id;
+			}
+		}
+	}
 
-    public boolean isUserChat(){
-        return !getLongId().contains("19:");
-    }
+	@Override
+	public String getLongId()
+	{
+		return id;
+	}
 
-    public void leave(){
-        kick(api.getUsername());
-    }
+	@Override
+	public Message sendMessage(Message msg)
+	{
+		return new SendMessagePacket(api).sendMessage(id, msg);
+	}
 
-    public boolean isAdmin() {
-        for (GroupUser user : getClients())
-            if (user.getUser().getUsername().equals(api.getUsername()) && user.role.equals(GroupUser.Role.MASTER))
-                return true;
-        return false;
-    }
-    public boolean isAdmin(String usr) {
-        for (GroupUser user : getClients())
-            if (user.getUser().getUsername().equals(usr) && user.role.equals(GroupUser.Role.MASTER))
-                return true;
-        return false;
-    }
-    public void changeTopic(String topic){
-        PacketBuilder pb = new PacketBuilder(api);
-        pb.setUrl("https://client-s.gateway.messenger.live.com/v1/threads/" + id + "/properties?name=topic");
-        pb.setType(RequestType.PUT);
-        pb.setData("{\"topic\":\""+topic+"\"}");
-        pb.makeRequest();
-    }
+	@Override
+	public Message sendMessage(String msg)
+	{
+		return new SendMessagePacket(api).sendMessage(id, new Message(msg));
+	}
+
+	@Override
+	public Message sendImage(File url)
+	{
+		return new SendMessagePacket(api).sendPing(id, new Message(""), new PingPrepPacket(api).urlToId(url, id));
+	}
+
+	@Override
+	public Message sendImage(URL url)
+	{
+		return new SendMessagePacket(api).sendPing(id, new Message(""), new PingPrepPacket(api).urlToId(url.toString(), id));
+	}
+
+	@Override
+	public List<GroupUser> getClients()
+	{
+		return clients;
+	}
+
+	@Override
+	public String getTopic()
+	{
+		return topic;
+	}
+
+	@Override
+	public boolean isUserChat()
+	{
+		return !getLongId().contains("19:");
+	}
+
+	@Override
+	public void leave()
+	{
+		kick(api.getUsername());
+	}
+
+	@Override
+	public boolean isAdmin()
+	{
+		for (GroupUser user : getClients())
+			if (user.getUser().getUsername().equals(api.getUsername()) && user.role.equals(GroupUser.Role.MASTER))
+				return true;
+		return false;
+	}
+
+	@Override
+	public boolean isAdmin(String usr)
+	{
+		for (GroupUser user : getClients())
+			if (user.getUser().getUsername().equals(usr) && user.role.equals(GroupUser.Role.MASTER))
+				return true;
+		return false;
+	}
+
+	@Override
+	public void changeTopic(String topic)
+	{
+		PacketBuilder pb = new PacketBuilder(api);
+		pb.setUrl("https://client-s.gateway.messenger.live.com/v1/threads/" + id + "/properties?name=topic");
+		pb.setType(RequestType.PUT);
+		pb.setData("{\"topic\":\"" + topic + "\"}");
+		pb.makeRequest();
+	}
 }

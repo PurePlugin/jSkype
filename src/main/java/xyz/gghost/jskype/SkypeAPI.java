@@ -39,7 +39,6 @@ import xyz.gghost.jskype.user.User;
 
 public class SkypeAPI
 {
-
 	@Getter
 	private List<Group> groups = new ArrayList<Group>();
 	@Getter

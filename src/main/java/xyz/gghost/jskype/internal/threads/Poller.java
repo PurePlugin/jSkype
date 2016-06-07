@@ -34,7 +34,6 @@ import xyz.gghost.jskype.user.User;
 
 public class Poller extends Thread
 {
-
 	private List<Thread> threads = new ArrayList<Thread>();
 	private SkypeAPI api;
 	private boolean breakl = false;
