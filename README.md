@@ -23,7 +23,7 @@ jSkype creation started when skype4web was released, however at the time I was m
  
 #Events
 - Edit message (UserChatEvent#isEdited)
-- TopicChangedEvent
+- TopicChangedEvent (Cancellable)
 - UserChatEvent
 - UserImagePingEvent
 - UserOtherFilesPingEvent
@@ -64,22 +64,16 @@ Before creating a Skype instance, you'll need to confirm whether or not you logi
 
 Example user/pass: 
 ```java
-SkypeAPI skype = new SkypeAPI("NotGhostBot", "Password");
-skype.login();
+SkypeAPI skype = new SkypeAPI("NotGhostBot", "Password").login();
 ```
 
 #Sending chat messages
 Sending a message to all contacts example:
 ```java
-for (User user : skype.getContacts()){
-  user.getGroup().sendMessage("Hi");
-}
 ```
 Sending a message to all recent groups and contacts example:
 ```java
-for (Group group : skype.getGroups()){
-  group.sendMessage("Hi");
-}
+skype.getGroups().forEach(group -> group.sendMessage("Hi"));
 ```
 Editing a message:
 ```java
@@ -90,23 +84,43 @@ message.editMessage("");
 
 MessageBuilder is the builder class for constructing string that is safe to pass to Group#sendMessage. In order to add text to the message builder, use #addText. Only use #addHtml with past outputs from #build and html code you know is safe. If you'd like to add two message builders together, simply builderA.build() + builderB.build() would work, however I recommend you to pass the old build output to the constructor of the new builder instance, if you want to make a clean message builder. Otherwise, you can use the FormatUtils class for small, quick jobs.
 
+#Example command handler usage:
+
+```java
+
+public class TestCommand extends Command
+{
+	public TestCommand()
+	{
+		super("test");
+	}
+	
+	@Override
+	public void execute()
+	{
+		getChat().sendMessage(getSender().getUsername() + " said Hi!");
+	}
+}
+
+public class Main
+{
+	public static void main(String[] args) throws Exception
+	{
+		SkypeAPI skype = new SkypeAPI("username", "password").login();
+		
+		skype.getCommandBus().register(new TestCommand());
+	}
+}
+
+```
+
 #Example event handler usage:
 
 ```java
-public class ExampleListener
+skype.getEventBus().register(UserJoinEvent.class, event ->
 {
-    private final SkypeAPI api;
-    
-    public ExampleListener(SkypeAPI api)
-    {
-        this.api = api;
-        
-        api.getEventBus().register(UserJoinEvent.class, event ->
-        {
-            System.out.println(event.getUser().getDisplayName() + " has joined " + event.getGroup().getChatId());
-        });
-    }
-}
+    System.out.println(event.getUser().getDisplayName() + " has joined " + event.getGroup().getChatId());
+});
 ```
 
 #TODO

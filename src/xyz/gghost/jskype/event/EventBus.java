@@ -71,7 +71,8 @@ public final class EventBus
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(
+	{ "unchecked", "rawtypes" })
 	public <T extends Event> T post(T event)
 	{
 		Preconditions.checkNotNull(event, "event cannot be null");
@@ -80,7 +81,7 @@ public final class EventBus
 		{
 			for (Class zuper = event.getClass(); zuper != null && zuper != Event.class; zuper = zuper.getSuperclass())
 			{
-				consumerMap.get(zuper).forEach(consumer -> consumer.accept(event));
+				consumerMap.get(zuper).forEach((Consumer<? super Consumer<Event>>) consumer -> consumer.accept(event));
 			}
 			return event;
 		}

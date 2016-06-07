@@ -35,8 +35,10 @@ public class Auth
 		getIdsPacket.setType(RequestType.GET);
 
 		String htmlIds = getIdsPacket.makeRequest();
+
 		if (htmlIds == null)
 			throw new BadResponseException();
+
 		String pie = htmlIds.split("name=\"pie\" id=\"pie\" value=\"")[1].split("\"")[0];
 		String etm = htmlIds.split("name=\"etm\" id=\"etm\" value=\"")[1].split("\"")[0];
 

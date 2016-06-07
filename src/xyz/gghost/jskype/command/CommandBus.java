@@ -37,7 +37,7 @@ public class CommandBus
 
 			for (Command command : commands)
 			{
-				if (command.getAliases().contains(message.split(" ")[0].substring(1, message.length())))
+				if (command.getAliases().contains(message.split(" ")[0].replace(".", " ")))
 				{
 					toExecute = command;
 					break;
@@ -47,7 +47,7 @@ public class CommandBus
 			if (toExecute == null)
 				return;
 
-			api.getLogger().log(Level.COMMAND, username + " executed the command '" + message.split(" ")[0] + "'");
+			api.getLogger().log(Level.COMMAND, username + " executed the command '" + message + "'");
 
 			toExecute.setChat(event.getGroup());
 			toExecute.setSender(event.getUser());
