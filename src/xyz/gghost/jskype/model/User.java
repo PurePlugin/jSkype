@@ -1,6 +1,5 @@
-package xyz.gghost.jskype.user;
+package xyz.gghost.jskype.model;
 
-import xyz.gghost.jskype.Group;
 import xyz.gghost.jskype.SkypeAPI;
 
 public interface User
@@ -11,7 +10,7 @@ public interface User
 
 	String getPictureUrl();
 
-	OnlineStatus getOnlineStatus();
+	Visibility getOnlineStatus();
 
 	boolean isBlocked();
 

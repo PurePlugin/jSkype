@@ -1,13 +1,15 @@
 package xyz.gghost.jskype.internal.threads;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import xyz.gghost.jskype.Group;
-import xyz.gghost.jskype.Logger.Level;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.events.ChatPictureChangedEvent;
 import xyz.gghost.jskype.events.TopicChangedEvent;
@@ -29,20 +31,19 @@ import xyz.gghost.jskype.internal.packet.packets.GetProfilePacket;
 import xyz.gghost.jskype.internal.packet.packets.GroupInfoPacket;
 import xyz.gghost.jskype.message.FormatUtils;
 import xyz.gghost.jskype.message.Message;
-import xyz.gghost.jskype.user.GroupUser;
-import xyz.gghost.jskype.user.OnlineStatus;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.Group;
+import xyz.gghost.jskype.model.GroupUser;
+import xyz.gghost.jskype.model.User;
+import xyz.gghost.jskype.model.Visibility;
 
+@Data
+@EqualsAndHashCode(callSuper = false)
 public class Poller extends Thread
 {
-	private List<Thread> threads = new ArrayList<Thread>();
-	private SkypeAPI api;
-	private boolean breakl = false;
+	private final List<Thread> threads = new ArrayList<Thread>();
+	private final SkypeAPI api;
 
-	public Poller(SkypeAPI api)
-	{
-		this.api = api;
-	}
+	private boolean breakl = false;
 
 	@Override
 	public void run()
@@ -59,6 +60,7 @@ public class Poller extends Thread
 			};
 			threads.add(a);
 			a.start();
+
 			try
 			{
 				sleep(250);
@@ -72,8 +74,7 @@ public class Poller extends Thread
 	public void stopThreads()
 	{
 		breakl = true;
-		for (Thread thread : threads)
-			thread.interrupt();
+		threads.forEach(thread -> thread.interrupt());
 	}
 
 	private void poll()
@@ -83,11 +84,13 @@ public class Poller extends Thread
 		poll.setUrl("https://client-s.gateway.messenger.live.com/v1/users/ME/endpoints/SELF/subscriptions/0/poll");
 		poll.setData(" ");
 		String data = poll.makeRequest();
+
 		if (data == null || data.equals("") || data.equals("{}"))
 			return;
 
 		JSONObject messagesAsJson = new JSONObject(data);
 		JSONArray json = messagesAsJson.getJSONArray("eventMessages");
+
 		for (int i = 0; i < json.length(); i++)
 		{
 			JSONObject object = json.getJSONObject(i);
@@ -103,7 +106,7 @@ public class Poller extends Thread
 						{
 							String idShort = object.getString("resourceLink").split("conversations/19:")[1].split("@thread")[0];
 							addGroupToRecent(object);
-							chat = api.getGroupById(idShort);
+							chat = api.getClient().getGroup(idShort).get();
 							// Old skype for web bug that affects some users
 						}
 						else if (!object.getString("resourceLink").contains("@"))
@@ -119,26 +122,39 @@ public class Poller extends Thread
 
 					if (object.getString("resourceType").equals("UserPresence") && object.getJSONObject("resource").getString("id").equals("messagingService"))
 					{
-						OnlineStatus status = OnlineStatus.OFFLINE;
+						Visibility status = Visibility.OFFLINE;
 						if (object.getJSONObject("resource").getString("status").equals("Online"))
-							status = OnlineStatus.ONLINE;
+							status = Visibility.ONLINE;
 						if (object.getJSONObject("resource").getString("status").equals("Busy"))
-							status = OnlineStatus.BUSY;
+							status = Visibility.BUSY;
 						User user;
 						try
 						{
-							user = api.getUserByUsername(object.getJSONObject("resource").getString("selfLink").split("/8:")[1].split("/")[0]);
+							user = api.getClient().getUserByUsername(object.getJSONObject("resource").getString("selfLink").split("/8:")[1].split("/")[0]);
 							if (!user.getOnlineStatus().name().equals(status.name()))
 								api.getEventBus().post(new UserStatusChangedEvent(user, status));
 
-							UserImpl userImpl = (UserImpl) api.getUserByUsername(object.getJSONObject("resource").getString("selfLink").split("/8:")[1].split("/")[0]);
+							UserImpl userImpl = (UserImpl) api.getClient().getUserByUsername(object.getJSONObject("resource").getString("selfLink").split("/8:")[1].split("/")[0]);
 							userImpl.setOnlineStatus(status);
-							api.updateContact(userImpl);
+
+							Iterator<User> iterator = api.getClient().getContacts().iterator();
+
+							while (iterator.hasNext())
+							{
+								User u = iterator.next();
+
+								if (u.getUsername().equals(userImpl.getUsername()))
+								{
+									iterator.remove();
+									api.getClient().getContacts().add(userImpl);
+									break;
+								}
+							}
 						}
 						catch (Exception e)
 						{
 							// We came online
-							api.setOnlineStatus(status);
+							api.getClient().setVisibility(Visibility.ONLINE);
 						}
 					}
 
@@ -153,6 +169,7 @@ public class Poller extends Thread
 					if (!resource.isNull("messagetype") && resource.getString("messagetype").equals("ThreadActivity/TopicUpdate"))
 					{
 						String topic = "";
+
 						try
 						{
 							topic = resource.getString("content").split("<value>")[1].split("<\\/value>")[0];
@@ -162,10 +179,12 @@ public class Poller extends Thread
 						{
 							for (GroupUser user : chat.getClients())
 								topic = topic + ", " + user.getUser().getUsername();
+
 							topic = topic.replaceFirst(", ", "");
 						}
+
 						String username = resource.getString("content").split("<initiator>8:")[1].split("<\\/initiator>")[0];
-						String oldTopic = api.getGroupById(chat.getId()).getTopic();
+						String oldTopic = api.getClient().getGroup(chat.getId()).get().getTopic();
 
 						User user = getUser(username, chat);
 
@@ -179,7 +198,7 @@ public class Poller extends Thread
 					if (!resource.isNull("messagetype") && resource.getString("messagetype").equals("ThreadActivity/PictureUpdate"))
 					{
 						String content = resource.getString("content");
-						User user = api.getUserByUsername(content.split("<initiator>8:")[1].split("<")[0]);
+						User user = api.getClient().getUserByUsername(content.split("<initiator>8:")[1].split("<")[0]);
 						String newUrl = content.split("<value>URL@")[1].split("<")[0];
 						api.getEventBus().post(new ChatPictureChangedEvent(chat, user, newUrl));
 					}
@@ -192,7 +211,6 @@ public class Poller extends Thread
 					}
 
 					// modern pings video
-
 					if (!resource.isNull("messagetype") && (resource.getString("messagetype").equals("RichText/Media_FlikMsg")))
 					{
 						String id = resource.getString("content").split("om/pes/v1/items/")[1].split("\\\"")[0];
@@ -254,8 +272,8 @@ public class Poller extends Thread
 			}
 			catch (Exception e)
 			{
-				api.getLogger().log(Level.ERROR, "Failed to process data from skype.\nMessage: " + object + "Data: " + data + "\nError: " + e.getMessage());
-				api.getLogger().log(Level.ERROR, "Is this a new convo?\nWait a few seconds!");
+				api.getLogger().severe("Failed to process data from skype.\nMessage: " + object + "Data: " + data + "\nError: " + e.getMessage());
+				api.getLogger().severe("Is this a new convo?\nWait a few seconds!");
 				e.printStackTrace();
 			}
 		}
@@ -272,7 +290,8 @@ public class Poller extends Thread
 			ArrayList<String> newUsers = new ArrayList<String>();
 
 			String shortId = object.getString("resourceLink").split("19:")[1].split("@")[0];
-			for (Group groups : api.getGroups())
+
+			for (Group groups : api.getClient().getGroups())
 			{
 				if (groups.getId().equals(shortId))
 				{
@@ -287,18 +306,17 @@ public class Poller extends Thread
 
 			if (oldGroup != null)
 			{
-
 				JSONObject resource = object.getJSONObject("resource");
 
 				String topic = resource.getJSONObject("properties").isNull("properties") ? "" : resource.getJSONObject("properties").getString("properties");
 
-				if ((api.getGroupById(shortId) != null))
-					topic = api.getGroupById(shortId).getTopic();
+				if ((api.getClient().getGroup(shortId).get() != null))
+					topic = api.getClient().getGroup(shortId).get().getTopic();
 
 				String picture = resource.getJSONObject("properties").isNull("picture") ? "" : resource.getJSONObject("properties").getString("picture");
 
-				if ((api.getGroupById(shortId) != null) && (!api.getGroupById(shortId).getPictureUrl().equals(picture)))
-					picture = api.getGroupById(shortId).getPictureUrl();
+				if ((api.getClient().getGroup(shortId).get() != null) && (!api.getClient().getGroup(shortId).get().getPictureUrl().equals(picture)))
+					picture = api.getClient().getGroup(shortId).get().getPictureUrl();
 
 				GroupImpl group = new GroupImpl(api, "19:" + object.getString("resourceLink").split("19:")[1].split("@")[0] + "@thread.skype");
 
@@ -309,20 +327,16 @@ public class Poller extends Thread
 				{
 					JSONObject user = object.getJSONObject("resource").getJSONArray("members").getJSONObject(ii);
 
-					newUsers.add(user.getString("id").split("8:")[1]); // add
-																		// username
+					// add username
+					newUsers.add(user.getString("id").split("8:")[1]);
 
 					try
 					{
 
 						GroupUser.Role role = GroupUser.Role.USER;
 
-						User ussr = api.getSimpleUser(user.getString("id").split("8:")[1]); // get
-																							// user
-																							// without
-																							// searching
-																							// skypes
-																							// BD
+						// get user without searching skypes database
+						User ussr = api.getClient().getSimpleUser(user.getString("id").split("8:")[1]);
 
 						if (!user.getString("role").equals("User"))
 							role = GroupUser.Role.MASTER;
@@ -351,21 +365,35 @@ public class Poller extends Thread
 				for (String news : newUsers)
 					api.getEventBus().post(new UserJoinEvent(group, new GetProfilePacket(api).getUser(news)));
 
-				api.updateGroup(group);
+				Iterator<Group> iterator = api.getClient().getGroups().iterator();
+
+				while (iterator.hasNext())
+				{
+					Group g = iterator.next();
+
+					if (g.getId().equals(group.getId()))
+					{
+						iterator.remove();
+						api.getClient().getGroups().add(group);
+						break;
+					}
+				}
 			}
 		}
 		catch (Exception e)
 		{
-			api.getLogger().log(Level.ERROR, "#################################################");
-			if (api.isAllowLogging())
+			api.getLogger().severe("#################################################");
+
+			if (api.getClient().isAllowLogging())
 				e.printStackTrace();
-			api.getLogger().log(Level.ERROR, "#################################################");
-			api.getLogger().log(Level.ERROR, "Failed to update group info. Have we just loaded?");
+
+			api.getLogger().severe("#################################################");
+			api.getLogger().severe("Failed to update group info. Have we just loaded?");
 
 			try
 			{
-				api.getLogger().log(Level.ERROR, "Resource Link: " + object.getString("resourceLink"));
-				api.getLogger().log(Level.ERROR, "Group ID: " + object.getString("resourceLink").split("19:")[1].split("@")[0] + "@thread.skype");
+				api.getLogger().severe("Resource Link: " + object.getString("resourceLink"));
+				api.getLogger().severe("Group ID: " + object.getString("resourceLink").split("19:")[1].split("@")[0] + "@thread.skype");
 			}
 			catch (Exception ea)
 			{
@@ -376,11 +404,15 @@ public class Poller extends Thread
 	// OLD METHODS
 	private User getUser(String username, Group chat)
 	{
-		User user;
-		// get user from contacts
-		user = api.getContact(username);
-		// get user from connected clients
-		if (user == null)
+		User user = null;
+
+		Optional<User> optional = api.getClient().getUser(username);
+
+		if (optional.isPresent())
+		{
+			user = optional.get();
+		}
+		else
 		{
 			try
 			{
@@ -394,6 +426,7 @@ public class Poller extends Thread
 			{
 			}
 		}
+
 		// If failed to get user - get the users info by calling skypes api
 		if (user == null)
 			user = new GetProfilePacket(api).getUser(username);
@@ -409,10 +442,26 @@ public class Poller extends Thread
 		{
 			String idLong = object.getString("resourceLink").split("conversations/")[1].split("/")[0];
 			String idShort = object.getString("resourceLink").split("conversations/19:")[1].split("@thread")[0];
-			for (Group group : api.getGroups())
+
+			for (Group group : api.getClient().getGroups())
 				if (group.getId().equals(idShort))
 					return;
-			api.updateGroup(new GroupInfoPacket(api).getGroup(idLong));
+
+			Group gNew = new GroupInfoPacket(api).getGroup(idLong);
+
+			Iterator<Group> iterator = api.getClient().getGroups().iterator();
+
+			while (iterator.hasNext())
+			{
+				Group g = iterator.next();
+
+				if (g.getId().equals(gNew.getId()))
+				{
+					iterator.remove();
+					api.getClient().getGroups().add(gNew);
+					break;
+				}
+			}
 		}
 		catch (Exception e)
 		{

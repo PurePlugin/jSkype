@@ -2,7 +2,7 @@ package xyz.gghost.jskype.events;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import xyz.gghost.jskype.event.Event;
+import xyz.gghost.jskype.events.base.Event;
 
 @EqualsAndHashCode(callSuper = false)
 @Data

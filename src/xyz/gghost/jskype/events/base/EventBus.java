@@ -1,4 +1,4 @@
-package xyz.gghost.jskype.event;
+package xyz.gghost.jskype.events.base;
 
 import java.util.Collection;
 import java.util.Iterator;

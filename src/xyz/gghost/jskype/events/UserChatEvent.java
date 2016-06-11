@@ -2,10 +2,10 @@ package xyz.gghost.jskype.events;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import xyz.gghost.jskype.Group;
-import xyz.gghost.jskype.event.Event;
+import xyz.gghost.jskype.events.base.Event;
 import xyz.gghost.jskype.message.Message;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.Group;
+import xyz.gghost.jskype.model.User;
 
 @Getter
 @AllArgsConstructor

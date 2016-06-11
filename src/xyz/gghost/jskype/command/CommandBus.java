@@ -5,17 +5,15 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
-import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.events.UserChatEvent;
 
+@Getter
 public class CommandBus
 {
-	@Getter
 	@Setter
 	private String prefix = ".";
 
-	@Getter
 	private final SkypeAPI api;
 
 	private List<Command> commands = new ArrayList<>();
@@ -47,7 +45,7 @@ public class CommandBus
 			if (toExecute == null)
 				return;
 
-			api.getLogger().log(Level.COMMAND, username + " executed the command '" + message + "'");
+			api.getLogger().info(username + " executed the command '" + message + "'");
 
 			toExecute.setChat(event.getGroup());
 			toExecute.setSender(event.getUser());

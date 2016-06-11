@@ -1,4 +1,4 @@
-package xyz.gghost.jskype.user;
+package xyz.gghost.jskype.model;
 
 public interface LocalAccount
 {

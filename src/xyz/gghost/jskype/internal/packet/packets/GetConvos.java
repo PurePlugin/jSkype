@@ -9,6 +9,7 @@ import xyz.gghost.jskype.exception.AccountUnusableForRecentException;
 import xyz.gghost.jskype.internal.impl.ContactGroupImpl;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
+import xyz.gghost.jskype.model.Group;
 
 @AllArgsConstructor
 public class GetConvos
@@ -36,7 +37,7 @@ public class GetConvos
 
 				if (recent.getString("targetLink").contains("/contacts/8:"))
 				{
-					api.updateGroup(new ContactGroupImpl(api, recent.getString("id")));
+					updateGroup(new ContactGroupImpl(api, recent.getString("id")));
 				}
 				else
 				{
@@ -46,7 +47,7 @@ public class GetConvos
 					{
 						try
 						{
-							api.updateGroup(new GroupInfoPacket(api).getGroup(id));
+							updateGroup(new GroupInfoPacket(api).getGroup(id));
 						}
 						catch (Exception e)
 						{
@@ -64,5 +65,21 @@ public class GetConvos
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public void updateGroup(Group group)
+	{
+		Group oldGroup = null;
+
+		for (Group groupA : api.getClient().getGroups())
+		{
+			if (groupA.getId().equals(group.getId()))
+				oldGroup = groupA;
+		}
+
+		if (oldGroup != null)
+			api.getClient().getGroups().remove(oldGroup);
+
+		api.getClient().getGroups().add(group);
 	}
 }

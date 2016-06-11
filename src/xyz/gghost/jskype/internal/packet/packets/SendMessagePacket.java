@@ -35,7 +35,7 @@ public class SendMessagePacket
 	{
 		String id = String.valueOf(System.currentTimeMillis());
 		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
-		msg.setSender(api.getSimpleUser(api.getUsername()));
+		msg.setSender(api.getClient().getSimpleUser(api.getClient().getUsername()));
 		msg.setUpdateUrl(url);
 		msg.setTime(id);
 		msg.setId(id);
@@ -56,7 +56,7 @@ public class SendMessagePacket
 		String id = String.valueOf(System.currentTimeMillis());
 		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
 
-		msg.setSender(api.getSimpleUser(api.getUsername()));
+		msg.setSender(api.getClient().getSimpleUser(api.getClient().getUsername()));
 		msg.setUpdateUrl(url);
 		msg.setTime(id);
 		msg.setId(id);

@@ -1,12 +1,12 @@
 package xyz.gghost.jskype.internal.impl;
 
 import lombok.Data;
-import xyz.gghost.jskype.user.LocalAccount;
+import xyz.gghost.jskype.model.LocalAccount;
 
 @Data
 public class LocalAccountImpl implements LocalAccount
 {
-	private String location = "";
+	private String location;
 	private String displayName;
 	private String name;
 	private String email;

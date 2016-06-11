@@ -8,9 +8,7 @@ import java.net.URL;
 import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
-import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
-import xyz.gghost.jskype.internal.packet.Header;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.PacketBuilderUploader;
 import xyz.gghost.jskype.internal.packet.RequestType;
@@ -26,19 +24,19 @@ public class PingPrepPacket
 
 		if (id == null)
 		{
-			api.getLogger().log(Level.ERROR, "Failed to get id");
+			api.getLogger().severe("Failed to get id");
 			return null;
 		}
 
 		if (!allowRead(id, groupId))
 		{
-			api.getLogger().log(Level.ERROR, "Failed to set perms");
+			api.getLogger().severe("Failed to set perms");
 			return null;
 		}
 
 		if (!writeData(id, url))
 		{
-			api.getLogger().log(Level.ERROR, "Failed to set image data");
+			api.getLogger().severe("Failed to set image data");
 			return null;
 		}
 		return id;
@@ -50,19 +48,19 @@ public class PingPrepPacket
 
 		if (id == null)
 		{
-			api.getLogger().log(Level.ERROR, "Failed to get id");
+			api.getLogger().severe("Failed to get id");
 			return null;
 		}
 
 		if (!allowRead(id, groupId))
 		{
-			api.getLogger().log(Level.ERROR, "Failed to set perms");
+			api.getLogger().severe("Failed to set perms");
 			return null;
 		}
 
 		if (!writeData(id, url))
 		{
-			api.getLogger().log(Level.ERROR, "Failed to set image data");
+			api.getLogger().severe("Failed to set image data");
 			return null;
 		}
 		return id;
@@ -73,16 +71,16 @@ public class PingPrepPacket
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setUrl("https://api.asm.skype.com/v1/objects");
 		packet.setData(" ");
-		packet.setSendLoginHeaders(false); // Disable skype for web
-											// authentication
-		packet.addHeader(new Header("Authorization", "skype_token " + api.getLoginTokens().getXToken())); // Use
-																											// the
-																											// windows
-																											// client
-																											// login
-																											// style
+
+		// Disable skype for web authentication
+		packet.setSendLoginHeaders(false);
+		packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken());
+
+		// Use the windows client login style
 		packet.setType(RequestType.POST);
+
 		String data = packet.makeRequest();
+
 		if (data == null)
 			return null;
 		return new JSONObject(data).getString("id");
@@ -95,14 +93,11 @@ public class PingPrepPacket
 
 		packet.setData("{\"" + longId + "\":[\"read\"]}");
 
-		packet.setSendLoginHeaders(false); // Disable skype for web
-											// authentication
-		packet.addHeader(new Header("Authorization", "skype_token " + api.getLoginTokens().getXToken())); // Use
-																											// the
-																											// windows
-																											// client
-																											// login
-																											// style
+		// Disable skype for web authentication
+		packet.setSendLoginHeaders(false);
+		packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken());
+
+		// Use the windows client login style
 		packet.setType(RequestType.PUT);
 		String data = packet.makeRequest();
 		return data != null;
@@ -121,12 +116,12 @@ public class PingPrepPacket
 			packet.setSendLoginHeaders(false); // Disable skype for web
 												// authentication
 			packet.setFile(true);
-			packet.addHeader(new Header("Authorization", "skype_token " + api.getLoginTokens().getXToken())); // Use
-																												// the
-																												// windows
-																												// client
-																												// login
-																												// style
+			packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken()); // Use
+			// the
+			// windows
+			// client
+			// login
+			// style
 			packet.setType(RequestType.PUT);
 
 			String dataS = packet.makeRequest(data);
@@ -153,12 +148,12 @@ public class PingPrepPacket
 			packet.setSendLoginHeaders(false); // Disable skype for web
 												// authentication
 			packet.setFile(true);
-			packet.addHeader(new Header("Authorization", "skype_token " + api.getLoginTokens().getXToken())); // Use
-																												// the
-																												// windows
-																												// client
-																												// login
-																												// style
+			packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken()); // Use
+			// the
+			// windows
+			// client
+			// login
+			// style
 			packet.setType(RequestType.PUT);
 
 			String dataS = packet.makeRequest(data);

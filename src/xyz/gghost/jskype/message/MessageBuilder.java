@@ -91,18 +91,25 @@ public class MessageBuilder
 		String out = outHtml.toString();
 		if (bold)
 			out = FormatUtils.bold(out);
+
 		if (italic)
 			out = FormatUtils.italic(out);
+
 		if (blink)
 			out = FormatUtils.blink(out);
+
 		if (underlined)
 			out = FormatUtils.underline(out);
+
 		if (strikethrough)
 			out = FormatUtils.strikethrough(out);
+
 		if (size > 0)
 			out = FormatUtils.size(out, size);
+
 		if (code)
 			out = FormatUtils.code(out);
+
 		return out;
 	}
 }

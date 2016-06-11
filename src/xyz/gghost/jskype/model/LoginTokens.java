@@ -1,4 +1,4 @@
-package xyz.gghost.jskype.internal.auth;
+package xyz.gghost.jskype.model;
 
 import lombok.Data;
 

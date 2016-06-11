@@ -1,10 +1,10 @@
 package xyz.gghost.jskype.internal.impl;
 
 import lombok.Data;
-import xyz.gghost.jskype.Group;
 import xyz.gghost.jskype.SkypeAPI;
-import xyz.gghost.jskype.user.OnlineStatus;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.Group;
+import xyz.gghost.jskype.model.User;
+import xyz.gghost.jskype.model.Visibility;
 
 @Data
 public class UserImpl implements User
@@ -17,7 +17,7 @@ public class UserImpl implements User
 	private boolean blocked = false;
 	private String firstName = "";
 	private String lastName = "";
-	private OnlineStatus onlineStatus = OnlineStatus.OFFLINE;
+	private Visibility onlineStatus = Visibility.OFFLINE;
 
 	public UserImpl(String username)
 	{
@@ -28,13 +28,13 @@ public class UserImpl implements User
 	@Override
 	public void sendContactRequest(SkypeAPI api)
 	{
-		api.sendContactRequest(username);
+		api.getClient().sendContactRequest(username);
 	}
 
 	@Override
-	public void sendContactRequest(SkypeAPI api, String hello)
+	public void sendContactRequest(SkypeAPI api, String message)
 	{
-		api.sendContactRequest(username, hello);
+		api.getClient().sendContactRequest(username, message);
 	}
 
 	@Override

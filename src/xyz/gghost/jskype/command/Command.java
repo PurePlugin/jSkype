@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.Data;
-import xyz.gghost.jskype.Group;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.Group;
+import xyz.gghost.jskype.model.User;
 
 @Data
 public abstract class Command

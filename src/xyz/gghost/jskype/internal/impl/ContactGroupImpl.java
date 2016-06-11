@@ -3,11 +3,11 @@ package xyz.gghost.jskype.internal.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import xyz.gghost.jskype.Group;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.packets.SendMessagePacket;
 import xyz.gghost.jskype.message.Message;
-import xyz.gghost.jskype.user.GroupUser;
+import xyz.gghost.jskype.model.Group;
+import xyz.gghost.jskype.model.GroupUser;
 
 /**
  * Created by Ghost on 19/09/2015.

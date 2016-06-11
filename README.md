@@ -64,7 +64,7 @@ Before creating a Skype instance, you'll need to confirm whether or not you logi
 
 Example user/pass: 
 ```java
-SkypeAPI skype = new SkypeAPI("NotGhostBot", "Password").login();
+SkypeAPI skype = new SkypeAPI("Username", "Password").login();
 ```
 
 #Sending chat messages

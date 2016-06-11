@@ -7,15 +7,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
-import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.impl.LocalAccountImpl;
 import xyz.gghost.jskype.internal.impl.UserImpl;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.message.FormatUtils;
-import xyz.gghost.jskype.user.LocalAccount;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.LocalAccount;
+import xyz.gghost.jskype.model.User;
 
 @AllArgsConstructor
 public class GetProfilePacket
@@ -115,9 +114,9 @@ public class GetProfilePacket
 			// Display debug info and return minimalistic data about the user
 			// TODO: retry
 
-			api.getLogger().log(Level.ERROR, "Failed to get profile of " + username + " due to an internal server error");
-			api.getLogger().log(Level.ERROR, "Someone may have blocked you or have high privacy settings.");
-			api.getLogger().log(Level.ERROR, "You can ignore this...");
+			api.getLogger().severe("Failed to get profile of " + username + " due to an internal server error");
+			api.getLogger().severe("Someone may have blocked you or have high privacy settings.");
+			api.getLogger().severe("You can ignore this...");
 
 			return minorUserData(username);
 		}
@@ -138,8 +137,8 @@ public class GetProfilePacket
 		}
 		catch (Exception e)
 		{
-			api.getLogger().log(Level.ERROR, "Failed to get profile of " + username);
-			api.getLogger().log(Level.ERROR, "Data : " + data);
+			api.getLogger().severe("Failed to get profile of " + username);
+			api.getLogger().severe("Data : " + data);
 
 			e.printStackTrace();
 			return minorUserData(username);
@@ -198,8 +197,8 @@ public class GetProfilePacket
 		}
 		catch (Exception e)
 		{
-			api.getLogger().log(Level.ERROR, "Failed to get profile of arraylist");
-			api.getLogger().log(Level.ERROR, "Data : " + data);
+			api.getLogger().severe("Failed to get profile of arraylist");
+			api.getLogger().severe("Data : " + data);
 
 			e.printStackTrace();
 			return null;

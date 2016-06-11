@@ -1,10 +1,8 @@
 package xyz.gghost.jskype.internal.packet;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-@AllArgsConstructor
+@Data
 public class Header
 {
 	private final String type;

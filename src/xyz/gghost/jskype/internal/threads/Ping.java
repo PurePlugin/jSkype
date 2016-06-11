@@ -4,9 +4,9 @@ import lombok.Getter;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.packets.PingPacket;
 
+@Getter
 public class Ping extends Thread
 {
-	@Getter
 	private final PingPacket ping;
 
 	public Ping(SkypeAPI api)

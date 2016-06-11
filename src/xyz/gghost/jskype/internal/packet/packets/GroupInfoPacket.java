@@ -2,21 +2,21 @@ package xyz.gghost.jskype.internal.packet.packets;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
-import xyz.gghost.jskype.Group;
-import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.impl.GroupImpl;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.message.FormatUtils;
-import xyz.gghost.jskype.user.GroupUser;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.Group;
+import xyz.gghost.jskype.model.GroupUser;
+import xyz.gghost.jskype.model.User;
 
 @AllArgsConstructor
 public class GroupInfoPacket
@@ -49,11 +49,16 @@ public class GroupInfoPacket
 		for (int ii = 0; ii < membersArray.length(); ii++)
 		{
 			JSONObject member = membersArray.getJSONObject(ii);
+
+			// Skip over phone numbers
+			if (member.getString("id").startsWith("4"))
+				continue;
+
 			try
 			{
 				GroupUser.Role role = GroupUser.Role.USER;
 
-				User ussr = api.getSimpleUser(member.getString("id").split("8:")[1]);
+				User ussr = api.getClient().getSimpleUser(member.getString("id").split("8:")[1]);
 
 				if (!member.getString("role").equals("User"))
 					role = GroupUser.Role.MASTER;
@@ -62,8 +67,7 @@ public class GroupInfoPacket
 			}
 			catch (Exception e)
 			{
-				api.getLogger().log(Level.ERROR, "Failed to get a members info");
-				api.getLogger().log(Level.DEBUG, e.getLocalizedMessage());
+				api.getLogger().log(Level.SEVERE, "Unable to get a users info", e);
 			}
 		}
 		return group;
@@ -93,19 +97,18 @@ public class GroupInfoPacket
 
 					GroupUser.Role role = GroupUser.Role.USER;
 
-					User usr = api.getSimpleUser(member.getString("id").split("8:")[1]);
+					User usr = api.getClient().getSimpleUser(member.getString("id").split("8:")[1]);
+
 					if (!member.getString("role").equals("User"))
 						role = GroupUser.Role.MASTER;
 
-					GroupUser gu = new GroupUser(usr, role, new GroupImpl(api, id));
-
-					groupMembers.add(gu);
+					groupMembers.add(new GroupUser(usr, role, new GroupImpl(api, id)));
 
 				}
 				catch (Exception e)
 				{
-					api.getLogger().log(Level.ERROR, "Failed to get a members info");
-					api.getLogger().log(Level.DEBUG, e.getLocalizedMessage());
+					api.getLogger().severe("Failed to get a members info");
+					api.getLogger().severe(e.getLocalizedMessage());
 
 				}
 			}

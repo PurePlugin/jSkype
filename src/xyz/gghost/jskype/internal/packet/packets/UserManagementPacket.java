@@ -40,9 +40,6 @@ public class UserManagementPacket
 	 */
 	public boolean promoteUser(String groupId, String username)
 	{
-		if (username.equals("melted.pw"))
-			return false; // known spammer - do not allow mod
-
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setUrl("https://client-s.gateway.messenger.live.com/v1/threads/" + groupId + "/members/8:" + username);
 		packet.setData(new JSONObject().put("Role", "Admin").toString());

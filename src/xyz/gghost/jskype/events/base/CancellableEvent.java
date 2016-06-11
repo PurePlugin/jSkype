@@ -1,4 +1,4 @@
-package xyz.gghost.jskype.event;
+package xyz.gghost.jskype.events.base;
 
 import lombok.Getter;
 import lombok.Setter;

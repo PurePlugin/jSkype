@@ -1,15 +1,15 @@
-package xyz.gghost.jskype.user;
+package xyz.gghost.jskype.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import xyz.gghost.jskype.internal.impl.GroupImpl;
 
-/**
- * Created by Ghost on 19/09/2015.
- */
 @AllArgsConstructor
 public class GroupUser
 {
+	@Getter
 	private User user;
+
 	public final Role role;
 	private GroupImpl group;
 
@@ -22,11 +22,6 @@ public class GroupUser
 	public void setIsAdmin(boolean admin)
 	{
 		group.setAdmin(user.getUsername(), admin);
-	}
-
-	public User getUser()
-	{
-		return user;
 	}
 
 	public enum Role

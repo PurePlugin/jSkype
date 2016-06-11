@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.events.UserPendingContactRequestEvent;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.User;
 
 /**
  * Created by Ghost on 19/09/2015.
@@ -27,11 +27,13 @@ public class PendingContactEventThread extends Thread
 		{
 			try
 			{
-				ArrayList<User> newRequests = api.getContactRequests();
+				ArrayList<User> newRequests = api.getClient().getContactRequests();
+
 				if (!firstTime)
 				{
 					// Allows other clients to accept the request!
 					ArrayList<String> newLastUsers = new ArrayList<String>();
+
 					for (User user : newRequests)
 					{
 						if (!lastUsers.contains(user.getUsername()))
@@ -59,6 +61,7 @@ public class PendingContactEventThread extends Thread
 			catch (InterruptedException ignored)
 			{
 			}
+
 			firstTime = false;
 		}
 	}

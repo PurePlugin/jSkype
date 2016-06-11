@@ -3,12 +3,11 @@ package xyz.gghost.jskype.message;
 import lombok.Data;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.packets.SendMessagePacket;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.User;
 
 @Data
 public class Message
 {
-
 	private User sender;
 	private String message;
 	private String updateUrl;

@@ -1,4 +1,4 @@
-package xyz.gghost.jskype;
+package xyz.gghost.jskype.model;
 
 import java.io.File;
 import java.net.URL;
@@ -6,7 +6,6 @@ import java.util.List;
 
 import xyz.gghost.jskype.message.Message;
 import xyz.gghost.jskype.message.MessageHistory;
-import xyz.gghost.jskype.user.GroupUser;
 
 public interface Group
 {

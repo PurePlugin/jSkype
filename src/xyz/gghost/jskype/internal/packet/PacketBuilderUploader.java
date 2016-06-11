@@ -8,8 +8,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.logging.Level;
 
-import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 
 public class PacketBuilderUploader extends PacketBuilder
@@ -19,8 +19,7 @@ public class PacketBuilderUploader extends PacketBuilder
 		super(api);
 	}
 
-	@SuppressWarnings("deprecation")
-	public String makeRequest(InputStream ss)
+	public String makeRequest(InputStream inputStream)
 	{
 		try
 		{
@@ -29,10 +28,10 @@ public class PacketBuilderUploader extends PacketBuilder
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			int nRead;
 			byte[] data = new byte[16384];
-			while ((nRead = ss.read(data, 0, data.length)) != -1)
-			{
+
+			while ((nRead = inputStream.read(data, 0, data.length)) != -1)
 				buffer.write(data, 0, nRead);
-			}
+
 			buffer.flush();
 			bytes = buffer.toByteArray();
 			// end read of file
@@ -48,12 +47,12 @@ public class PacketBuilderUploader extends PacketBuilder
 			con.setDoOutput(true);
 
 			if (sendLoginHeaders)
-				addLogin(api);
-
-			for (Header s : headers)
 			{
-				con.addRequestProperty(s.getType(), s.getData());
+				addHeader("RegistrationToken", api.getClient().getLoginTokens().getReg());
+				addHeader("X-Skypetoken", api.getClient().getLoginTokens().getXToken());
 			}
+
+			headers.forEach(header -> con.addRequestProperty(header.getType(), header.getData()));
 
 			OutputStream wr = con.getOutputStream();
 
@@ -77,8 +76,8 @@ public class PacketBuilderUploader extends PacketBuilder
 			}
 			else if (responseCode == 401)
 			{
-				api.getLogger().log(Level.ERROR, "\n\nBad login...");
-				api.getLogger().log(Level.ERROR, this.url + " returned 401. \nHave you been running jSkype for more than 2 days?\nWithin 4 seconds the ping-er should relog you in.\n\n");
+				api.getLogger().severe("\n\nBad login...");
+				api.getLogger().severe(this.url + " returned 401. \nHave you been running jSkype for more than 2 days?\nWithin 4 seconds the ping-er should relog you in.\n\n");
 				return "---";
 			}
 			else if (responseCode == 204)
@@ -88,20 +87,14 @@ public class PacketBuilderUploader extends PacketBuilder
 			else
 			{
 				// Debug info
-				System.out.println("Error contacting skype\nUrl: " + url + "\nCode: " + responseCode + "\nData: " + Arrays.toString(data));
-				for (Header header : headers)
-				{
-					api.getLogger().log(Level.ERROR, header.getType() + ": " + header.getData());
-				}
+				api.getLogger().info("Error contacting skype\nUrl: " + url + "\nCode: " + responseCode + "\nData: " + Arrays.toString(data));
+				headers.forEach(header -> api.getLogger().severe(header.getType() + ": " + header.getData()));
 				return null;
 			}
 		}
 		catch (Exception e)
 		{
-			api.getLogger().log(Level.ERROR, "================================================");
-			api.getLogger().log(Level.ERROR, "========Unable to request  the skype api========");
-			api.getLogger().log(Level.ERROR, "================================================");
-			e.printStackTrace();
+			api.getLogger().log(Level.SEVERE, "Unable to request the skype api", e);
 			return null;
 		}
 	}

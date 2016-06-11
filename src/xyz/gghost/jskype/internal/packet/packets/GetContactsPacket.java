@@ -2,20 +2,20 @@ package xyz.gghost.jskype.internal.packet.packets;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
-import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.exception.BadResponseException;
 import xyz.gghost.jskype.exception.FailedToGetContactsException;
 import xyz.gghost.jskype.internal.impl.UserImpl;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.User;
 
 @AllArgsConstructor
 public class GetContactsPacket
@@ -29,7 +29,7 @@ public class GetContactsPacket
 		ArrayList<String> usernames = new ArrayList<String>();
 
 		PacketBuilder packet = new PacketBuilder(api);
-		packet.setUrl("https://contacts.skype.com/contacts/v1/users/" + api.getUsername().toLowerCase() + "/contacts?filter=contacts");
+		packet.setUrl("https://contacts.skype.com/contacts/v1/users/" + api.getClient().getUsername().toLowerCase() + "/contacts?filter=contacts");
 		packet.setType(RequestType.OPTIONS);
 		packet.getData();
 		packet.setType(RequestType.GET);
@@ -38,11 +38,11 @@ public class GetContactsPacket
 
 		if (a == null)
 		{
-			api.getLogger().log(Level.ERROR, "Failed to request Skype for your contacts.");
-			api.getLogger().log(Level.ERROR, "Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
+			api.getLogger().severe("Failed to request Skype for your contacts.");
+			api.getLogger().severe("Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
 
-			if (api.getContacts().size() == 0)
-				api.getContacts().add(api.getSimpleUser(api.getUsername()));
+			if (api.getClient().getContacts().size() == 0)
+				api.getClient().getContacts().add(api.getClient().getSimpleUser(api.getClient().getUsername()));
 
 			return;
 		}
@@ -61,13 +61,27 @@ public class GetContactsPacket
 			}
 
 			contacts = new GetProfilePacket(api).getUsers(usernames);
+
 			if (contacts != null)
 			{
 				for (User user : contacts)
 				{
 					((UserImpl) user).setContact(true);
 					((UserImpl) user).setBlocked(blocked.get(user.getUsername()));
-					api.updateContact(user);
+
+					Iterator<User> iterator = api.getClient().getContacts().iterator();
+
+					while (iterator.hasNext())
+					{
+						User u = iterator.next();
+
+						if (u.getUsername().equals(user.getUsername()))
+						{
+							iterator.remove();
+							api.getClient().getContacts().add(user);
+							break;
+						}
+					}
 				}
 			}
 		}

@@ -10,13 +10,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import xyz.gghost.jskype.Logger.Level;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.exception.BadResponseException;
 import xyz.gghost.jskype.exception.BadUsernamePasswordException;
 import xyz.gghost.jskype.exception.FailedToLoginException;
 import xyz.gghost.jskype.exception.RecaptchaException;
-import xyz.gghost.jskype.internal.packet.Header;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 
@@ -25,7 +23,7 @@ public class Auth
 	private String url = "";
 	private PacketBuilder packet;
 
-	private Document postData(String username, String password, SkypeAPI api) throws BadResponseException, UnsupportedEncodingException
+	private Document postData(SkypeAPI api) throws BadResponseException, UnsupportedEncodingException
 	{
 		Date now = new Date();
 
@@ -43,8 +41,8 @@ public class Auth
 		String etm = htmlIds.split("name=\"etm\" id=\"etm\" value=\"")[1].split("\"")[0];
 
 		StringBuilder data = new StringBuilder();
-		data.append("username=").append(URLEncoder.encode(username, "UTF-8"));
-		data.append("&password=").append(URLEncoder.encode(password, "UTF-8"));
+		data.append("username=").append(URLEncoder.encode(api.getClient().getUsername(), "UTF-8"));
+		data.append("&password=").append(URLEncoder.encode(api.getClient().getPassword(), "UTF-8"));
 		data.append("&timezone_field=").append(URLEncoder.encode(new SimpleDateFormat("XXX").format(now).replace(':', '|'), "UTF-8"));
 		data.append("&js_time=").append(String.valueOf(now.getTime() / 1000));
 		data.append("&pie=").append(URLEncoder.encode(pie, "UTF-8"));
@@ -67,13 +65,11 @@ public class Auth
 			throw new BadResponseException();
 
 		return Jsoup.parse(html);
-
 	}
 
 	public void login(SkypeAPI api) throws Exception
 	{
-		Document loginResponse = postData(api.getUsername(), api.getPassword(), api);
-		handle(loginResponse, api);
+		handle(postData(api), api);
 
 		try
 		{
@@ -85,7 +81,7 @@ public class Auth
 		}
 	}
 
-	public void handle(Document loginResponseDocument, SkypeAPI account) throws FailedToLoginException, RecaptchaException
+	public void handle(Document loginResponseDocument, SkypeAPI api) throws FailedToLoginException, RecaptchaException
 	{
 		try
 		{
@@ -93,11 +89,11 @@ public class Auth
 
 			if (inputs.size() > 0)
 			{
-				account.getLoginTokens().setXToken(inputs.get(0).attr("value"));
+				api.getClient().getLoginTokens().setXToken(inputs.get(0).attr("value"));
 			}
 			else if (loginResponseDocument.html().contains("var skypeHipUrl = \"https://clien"))
 			{
-				account.getLogger().log(Level.ERROR, "Failed to connect due to a recaptcha!");
+				api.getLogger().severe("Failed to connect due to a recaptcha!");
 				throw new RecaptchaException();
 			}
 			else
@@ -124,10 +120,17 @@ public class Auth
 		}
 		catch (RecaptchaException e)
 		{
-			if (!account.isReloggin())
+			if (!api.getClient().isRelog())
 				throw e;
 
-			account.stop();
+			try
+			{
+				api.stop();
+			}
+			catch (Exception e1)
+			{
+				e1.printStackTrace();
+			}
 		}
 	}
 
@@ -137,7 +140,7 @@ public class Auth
 
 		if (!reg(api))
 		{
-			api.getLogger().log(Level.ERROR, "Failed to get update data from skype due to a login error... Attempting to relogin, however this wont work until the auto pinger kicks in.");
+			api.getLogger().severe("Failed to get update data from skype due to a login error... Attempting to relogin, however this wont work until the auto pinger kicks in.");
 			authLogin(api);
 
 			try
@@ -155,8 +158,8 @@ public class Auth
 	public void authLogin(SkypeAPI api) throws FailedToLoginException
 	{
 		url = location(api).split("://")[1].split("/")[0];
-		api.getLoginTokens().setReg(packet.getCon().getHeaderField("Set-RegistrationToken").split(";")[0]);
-		api.getLoginTokens().setEndPoint(packet.getCon().getHeaderField("Set-RegistrationToken").split(";")[2].split("=")[1]);
+		api.getClient().getLoginTokens().setReg(packet.getCon().getHeaderField("Set-RegistrationToken").split(";")[0]);
+		api.getClient().getLoginTokens().setEndPoint(packet.getCon().getHeaderField("Set-RegistrationToken").split(";")[2].split("=")[1]);
 	}
 
 	public boolean save(SkypeAPI api)
@@ -165,7 +168,7 @@ public class Auth
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setType(RequestType.PUT);
 		packet.setData(id);
-		packet.setUrl("https://" + url + "/v1/users/ME/endpoints/" + api.getLoginTokens().getEndPoint() + "/presenceDocs/messagingService");
+		packet.setUrl("https://" + url + "/v1/users/ME/endpoints/" + api.getClient().getLoginTokens().getEndPoint() + "/presenceDocs/messagingService");
 		return packet.makeRequest() != null;
 	}
 
@@ -186,7 +189,7 @@ public class Auth
 		packet.setType(RequestType.POST);
 		packet.setSendLoginHeaders(false);
 
-		packet.addHeader(new Header("Authentication", "skypetoken=" + api.getLoginTokens().getXToken()));
+		packet.addHeader("Authentication", "skypetoken=" + api.getClient().getLoginTokens().getXToken());
 		packet.setData("{}");
 		String data = packet.makeRequest();
 

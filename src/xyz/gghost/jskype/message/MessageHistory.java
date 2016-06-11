@@ -1,17 +1,18 @@
 package xyz.gghost.jskype.message;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import lombok.Getter;
-import xyz.gghost.jskype.Group;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
-import xyz.gghost.jskype.user.GroupUser;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.Group;
+import xyz.gghost.jskype.model.GroupUser;
+import xyz.gghost.jskype.model.User;
 
 public class MessageHistory
 {
@@ -25,14 +26,16 @@ public class MessageHistory
 	{
 		this.longId = longId;
 		this.api = api;
+
 		loadMoreMessages();
 	}
 
 	public void loadMoreMessages()
 	{
-		Group convo = api.getGroupById(longId.contains("@") ? longId.split(":")[1].split("@")[0] : longId.split("8:")[1]);
+		Group convo = api.getClient().getGroup(longId.contains("@") ? longId.split(":")[1].split("@")[0] : longId.split("8:")[1]).get();
 
 		String nextUrl = this.nextUrl;
+
 		if (nextUrl == null)
 			nextUrl = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages?startTime=0&pageSize=51&view=msnp24Equivalent&targetType=Passport|Skype|Lync|Thread";
 
@@ -41,6 +44,7 @@ public class MessageHistory
 		builder.setUrl(nextUrl);
 
 		String data = builder.makeRequest();
+
 		if (data == null)
 			return;
 
@@ -102,9 +106,15 @@ public class MessageHistory
 
 	private User getUser(String username, Group chat)
 	{
-		User user;
-		user = api.getContact(username);
-		if (user == null)
+		User user = null;
+
+		Optional<User> optional = api.getClient().getUser(username);
+
+		if (optional.isPresent())
+		{
+			user = optional.get();
+		}
+		else
 		{
 			try
 			{
@@ -118,8 +128,10 @@ public class MessageHistory
 			{
 			}
 		}
+
 		if (user == null)
-			user = api.getSimpleUser(username);
+			user = api.getClient().getSimpleUser(username);
+
 		return user;
 	}
 }

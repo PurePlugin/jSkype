@@ -13,7 +13,7 @@ import xyz.gghost.jskype.exception.BadResponseException;
 import xyz.gghost.jskype.exception.NoPendingContactsException;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
-import xyz.gghost.jskype.user.User;
+import xyz.gghost.jskype.model.User;
 
 @AllArgsConstructor
 public class GetPendingContactsPacket
@@ -52,9 +52,8 @@ public class GetPendingContactsPacket
 
 	public void acceptRequest(String user)
 	{
-
-		boolean canLog = api.isAllowLogging();
-		api.setAllowLogging(false);
+		boolean canLog = api.getClient().isAllowLogging();
+		api.getClient().setAllowLogging(false);
 		String URL = "https://api.skype.com/users/self/contacts/auth-request/" + user + "/accept";
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setData("");
@@ -75,7 +74,7 @@ public class GetPendingContactsPacket
 		// TODO: Find a replacement for json.org that supports json building
 		String data = "{\"contacts\": [";
 		boolean first = true;
-		for (User usr : api.getContacts())
+		for (User usr : api.getClient().getContacts())
 		{
 			data = data + (!first ? "," : "");
 			data = data + "{\"id\": \"" + usr.getUsername() + "\"}";
@@ -90,7 +89,7 @@ public class GetPendingContactsPacket
 		packet2.setIsForm(true);
 		packet2.setType(RequestType.POST);
 		packet2.makeRequest();
-		api.setAllowLogging(canLog);
+		api.getClient().setAllowLogging(canLog);
 	}
 
 	public void acceptRequest(User usr)
@@ -100,7 +99,7 @@ public class GetPendingContactsPacket
 
 	public void sendRequest(String user)
 	{
-		sendRequest(user, "Hi, I'd like to add you as a contact. -Sent from jSkypeAPI");
+		sendRequest(user, "Hi, I'd like to add you as a contact. -Sent from jSkype");
 	}
 
 	public void sendRequest(String user, String message)
