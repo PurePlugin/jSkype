@@ -48,8 +48,8 @@ public class PacketBuilderUploader extends PacketBuilder
 
 			if (sendLoginHeaders)
 			{
-				addHeader("RegistrationToken", api.getClient().getLoginTokens().getReg());
-				addHeader("X-Skypetoken", api.getClient().getLoginTokens().getXToken());
+				addHeader("RegistrationToken", api.getClient().getAuth().getLoginToken().getReg());
+				addHeader("X-Skypetoken", api.getClient().getAuth().getLoginToken().getXToken());
 			}
 
 			headers.forEach(header -> con.addRequestProperty(header.getType(), header.getData()));

@@ -6,20 +6,22 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.impl.LocalAccountImpl;
 import xyz.gghost.jskype.internal.impl.UserImpl;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.message.FormatUtils;
 import xyz.gghost.jskype.model.LocalAccount;
 import xyz.gghost.jskype.model.User;
 
-@AllArgsConstructor
-public class GetProfilePacket
+public class GetProfilePacket extends Packet
 {
-	private final SkypeAPI api;
+	public GetProfilePacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
 	public LocalAccount getMe()
 	{
@@ -33,12 +35,16 @@ public class GetProfilePacket
 		if (adminData != null)
 		{
 			JSONObject jsonA = new JSONObject(adminData);
+
 			if (!jsonA.isNull("registrationIp"))
 				me.setFirstLoginIP(jsonA.getString("registrationIp"));
+
 			if (!jsonA.isNull("registrationDate"))
 				me.setCreationTime(jsonA.getString("registrationDate"));
+
 			if (!jsonA.isNull("language"))
 				me.setLanguage(jsonA.getString("language"));
+
 			if (!jsonA.isNull("email"))
 				me.setEmail(jsonA.getString("email"));
 		}
@@ -51,6 +57,7 @@ public class GetProfilePacket
 		if (profileData != null)
 		{
 			JSONObject json = new JSONObject(profileData);
+
 			if (!json.isNull("jobtitle"))
 				me.setMicrosoftRank(json.getString("jobtitle"));
 
@@ -97,9 +104,8 @@ public class GetProfilePacket
 	public User getUser(String username)
 	{
 		if (username.equalsIgnoreCase("echo123"))
-		{
 			return minorUserData(username);
-		}
+
 		PacketBuilder packet = new PacketBuilder(api);
 
 		packet.setType(RequestType.POST);
@@ -120,6 +126,7 @@ public class GetProfilePacket
 
 			return minorUserData(username);
 		}
+
 		try
 		{
 			UserImpl user = new UserImpl(username);
@@ -218,5 +225,10 @@ public class GetProfilePacket
 	public String getDisplayName(String data)
 	{
 		return data.split("firstname\":\"")[1].split("\",\"")[0];
+	}
+
+	@Override
+	public void init()
+	{
 	}
 }

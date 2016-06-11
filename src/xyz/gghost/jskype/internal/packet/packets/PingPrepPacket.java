@@ -7,16 +7,18 @@ import java.net.URL;
 
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.PacketBuilderUploader;
 import xyz.gghost.jskype.internal.packet.RequestType;
 
-@AllArgsConstructor
-public class PingPrepPacket
+public class PingPrepPacket extends Packet
 {
-	private final SkypeAPI api;
+	public PingPrepPacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
 	public String urlToId(String url, String groupId)
 	{
@@ -74,7 +76,7 @@ public class PingPrepPacket
 
 		// Disable skype for web authentication
 		packet.setSendLoginHeaders(false);
-		packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken());
+		packet.addHeader("Authorization", "skype_token " + api.getClient().getAuth().getLoginToken().getXToken());
 
 		// Use the windows client login style
 		packet.setType(RequestType.POST);
@@ -95,7 +97,7 @@ public class PingPrepPacket
 
 		// Disable skype for web authentication
 		packet.setSendLoginHeaders(false);
-		packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken());
+		packet.addHeader("Authorization", "skype_token " + api.getClient().getAuth().getLoginToken().getXToken());
 
 		// Use the windows client login style
 		packet.setType(RequestType.PUT);
@@ -116,7 +118,7 @@ public class PingPrepPacket
 			packet.setSendLoginHeaders(false); // Disable skype for web
 												// authentication
 			packet.setFile(true);
-			packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken()); // Use
+			packet.addHeader("Authorization", "skype_token " + api.getClient().getAuth().getLoginToken().getXToken()); // Use
 			// the
 			// windows
 			// client
@@ -148,7 +150,7 @@ public class PingPrepPacket
 			packet.setSendLoginHeaders(false); // Disable skype for web
 												// authentication
 			packet.setFile(true);
-			packet.addHeader("Authorization", "skype_token " + api.getClient().getLoginTokens().getXToken()); // Use
+			packet.addHeader("Authorization", "skype_token " + api.getClient().getAuth().getLoginToken().getXToken()); // Use
 			// the
 			// windows
 			// client
@@ -168,5 +170,10 @@ public class PingPrepPacket
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void init()
+	{
 	}
 }

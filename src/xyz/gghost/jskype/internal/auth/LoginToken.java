@@ -1,9 +1,9 @@
-package xyz.gghost.jskype.model;
+package xyz.gghost.jskype.internal.auth;
 
 import lombok.Data;
 
 @Data
-public class LoginTokens
+public class LoginToken
 {
 	private String XToken;
 	private String reg;

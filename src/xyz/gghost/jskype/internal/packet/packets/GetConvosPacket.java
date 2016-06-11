@@ -1,22 +1,27 @@
 package xyz.gghost.jskype.internal.packet.packets;
 
+import java.util.logging.Level;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.exception.AccountUnusableForRecentException;
 import xyz.gghost.jskype.internal.impl.ContactGroupImpl;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.model.Group;
 
-@AllArgsConstructor
-public class GetConvos
+public class GetConvosPacket extends Packet
 {
-	private final SkypeAPI api;
+	public GetConvosPacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
-	public void setupRecent() throws AccountUnusableForRecentException
+	@Override
+	public void init()
 	{
 		try
 		{
@@ -59,7 +64,7 @@ public class GetConvos
 		}
 		catch (AccountUnusableForRecentException e)
 		{
-			throw e;
+			api.getLogger().log(Level.SEVERE, "Account unusable for recent", e);
 		}
 		catch (Exception e)
 		{

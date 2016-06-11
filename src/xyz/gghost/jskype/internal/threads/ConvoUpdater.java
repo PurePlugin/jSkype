@@ -4,8 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.events.APILoadedEvent;
-import xyz.gghost.jskype.exception.AccountUnusableForRecentException;
-import xyz.gghost.jskype.internal.packet.packets.GetConvos;
+import xyz.gghost.jskype.internal.packet.packets.GetConvosPacket;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -25,18 +24,16 @@ public class ConvoUpdater extends Thread
 			{
 				if (!groupFail)
 				{
-					new GetConvos(api).setupRecent();
-					api.getClient().setLoaded(true);
+					new GetConvosPacket(api).init();
 					api.getEventBus().post(new APILoadedEvent());
 				}
-			}
-			catch (AccountUnusableForRecentException e)
-			{
-				if (first)
-					groupFail = true;
+
 			}
 			catch (Exception e)
 			{
+				if (first)
+					groupFail = true;
+
 				e.printStackTrace();
 			}
 

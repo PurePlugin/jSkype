@@ -4,25 +4,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
-import xyz.gghost.jskype.exception.BadResponseException;
-import xyz.gghost.jskype.exception.FailedToGetContactsException;
 import xyz.gghost.jskype.internal.impl.UserImpl;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.model.User;
 
-@AllArgsConstructor
-public class GetContactsPacket
+public class GetContactsPacket extends Packet
 {
-	private final SkypeAPI api;
+	public GetContactsPacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
-	public void setupContact() throws FailedToGetContactsException, BadResponseException
+	@Override
+	public void init()
 	{
 		List<User> contacts;
 		HashMap<String, Boolean> blocked = new HashMap<String, Boolean>();
@@ -31,25 +33,28 @@ public class GetContactsPacket
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setUrl("https://contacts.skype.com/contacts/v1/users/" + api.getClient().getUsername().toLowerCase() + "/contacts?filter=contacts");
 		packet.setType(RequestType.OPTIONS);
-		packet.getData();
 		packet.setType(RequestType.GET);
 
-		String a = packet.makeRequest();
+		String data = packet.makeRequest();
 
-		if (a == null)
+		if (data == null)
 		{
 			api.getLogger().severe("Failed to request Skype for your contacts.");
 			api.getLogger().severe("Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
 
 			if (api.getClient().getContacts().size() == 0)
-				api.getClient().getContacts().add(api.getClient().getSimpleUser(api.getClient().getUsername()));
+			{
+				Optional<User> optional = api.getClient().getUser(api.getClient().getUsername());
 
+				if (optional.isPresent())
+					api.getClient().getContacts().add(optional.get());
+			}
 			return;
 		}
 
 		try
 		{
-			JSONObject jsonObject = new JSONObject(a);
+			JSONObject jsonObject = new JSONObject(data);
 			JSONArray lineItems = jsonObject.getJSONArray("contacts");
 
 			for (Object o : lineItems)

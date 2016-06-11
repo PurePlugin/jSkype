@@ -130,7 +130,7 @@ public class MessageHistory
 		}
 
 		if (user == null)
-			user = api.getClient().getSimpleUser(username);
+			user = api.getClient().getUser(username).get();
 
 		return user;
 	}

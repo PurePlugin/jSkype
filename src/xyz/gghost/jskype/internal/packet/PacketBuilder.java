@@ -16,13 +16,12 @@ import xyz.gghost.jskype.SkypeAPI;
 public class PacketBuilder
 {
 	protected final SkypeAPI api;
-	protected final List<Header> headers = new ArrayList<Header>();
+	protected final List<Header> headers = new ArrayList<>();
 
-	protected int code = 200;
-
-	protected String data = "";
 	protected String url = "";
-	protected RequestType type = null;
+	protected String data = "";
+	protected int code = 200;
+	protected RequestType type;
 	protected Boolean isForm = false;
 	protected HttpURLConnection con;
 	protected boolean sendLoginHeaders = true;
@@ -52,8 +51,8 @@ public class PacketBuilder
 
 			if (sendLoginHeaders)
 			{
-				addHeader("RegistrationToken", api.getClient().getLoginTokens().getReg());
-				addHeader("X-Skypetoken", api.getClient().getLoginTokens().getXToken());
+				addHeader("RegistrationToken", api.getClient().getAuth().getLoginToken().getReg());
+				addHeader("X-Skypetoken", api.getClient().getAuth().getLoginToken().getXToken());
 			}
 
 			headers.forEach(header -> con.addRequestProperty(header.getType(), header.getData()));

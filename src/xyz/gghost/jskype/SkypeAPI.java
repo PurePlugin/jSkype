@@ -11,13 +11,14 @@ import xyz.gghost.jskype.model.Visibility;
 public class SkypeAPI
 {
 	private final Logger logger = Logger.getLogger("jSkype");
-	private final EventBus eventBus = new EventBus();
-	private final CommandBus commandBus = new CommandBus(this);
-
+	private final EventBus eventBus;
+	private final CommandBus commandBus;
 	private final Client client;
 
 	public SkypeAPI(String username, String password)
 	{
+		eventBus = new EventBus();
+		commandBus = new CommandBus(this);
 		client = new Client(this, username, password);
 	}
 

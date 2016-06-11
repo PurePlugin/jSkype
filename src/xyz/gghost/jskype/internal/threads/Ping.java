@@ -19,7 +19,8 @@ public class Ping extends Thread
 	{
 		while (this.isAlive())
 		{
-			ping.doNow();
+			ping.init();
+
 			try
 			{
 				Thread.sleep(4000);

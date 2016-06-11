@@ -3,17 +3,20 @@ package xyz.gghost.jskype.internal.packet.packets;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 
-@AllArgsConstructor
-public class PingPacket
+public class PingPacket extends Packet
 {
-	private final SkypeAPI api;
+	public PingPacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
-	public void doNow()
+	@Override
+	public void init()
 	{
 		PacketBuilder ping = new PacketBuilder(api);
 		ping.setType(RequestType.POST);
@@ -21,6 +24,7 @@ public class PingPacket
 		ping.setData("sessionId=" + api.getClient().getUniqueId().toString());
 		ping.setIsForm(true);
 		String data = ping.makeRequest();
+
 		if (data == null || data.equals("---"))
 		{
 			api.getLogger().severe("Skype login expired... Reconnecting");
@@ -39,7 +43,7 @@ public class PingPacket
 		{
 			PacketBuilder online = new PacketBuilder(api);
 			online.setType(RequestType.POST);
-			online.setUrl("https://client-s.gateway.messenger.live.com/v1/users/ME/endpoints/" + URLEncoder.encode(api.getClient().getLoginTokens().getEndPoint(), "UTF-8") + "/active");
+			online.setUrl("https://client-s.gateway.messenger.live.com/v1/users/ME/endpoints/" + URLEncoder.encode(api.getClient().getAuth().getLoginToken().getEndPoint(), "UTF-8") + "/active");
 			online.setData("{\"timeout\":7}");
 			online.makeRequest();
 		}

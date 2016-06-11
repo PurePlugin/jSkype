@@ -16,7 +16,7 @@ public class ContactUpdater extends Thread
 		{
 			try
 			{
-				new GetContactsPacket(api).setupContact();
+				new GetContactsPacket(api).init();
 				Thread.sleep(7000);
 			}
 			catch (InterruptedException ignored)

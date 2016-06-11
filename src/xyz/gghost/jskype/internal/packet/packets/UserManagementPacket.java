@@ -2,15 +2,17 @@ package xyz.gghost.jskype.internal.packet.packets;
 
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 
-@AllArgsConstructor
-public class UserManagementPacket
+public class UserManagementPacket extends Packet
 {
-	private final SkypeAPI api;
+	public UserManagementPacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
 	/**
 	 * @return true = done / false = no perm
@@ -45,5 +47,10 @@ public class UserManagementPacket
 		packet.setData(new JSONObject().put("Role", "Admin").toString());
 		packet.setType(RequestType.PUT);
 		return packet.makeRequest() != null;
+	}
+
+	@Override
+	public void init()
+	{
 	}
 }

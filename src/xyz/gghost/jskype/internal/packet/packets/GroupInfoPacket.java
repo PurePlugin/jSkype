@@ -2,15 +2,15 @@ package xyz.gghost.jskype.internal.packet.packets;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.impl.GroupImpl;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.message.FormatUtils;
@@ -18,10 +18,12 @@ import xyz.gghost.jskype.model.Group;
 import xyz.gghost.jskype.model.GroupUser;
 import xyz.gghost.jskype.model.User;
 
-@AllArgsConstructor
-public class GroupInfoPacket
+public class GroupInfoPacket extends Packet
 {
-	private final SkypeAPI api;
+	public GroupInfoPacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
 	public Group getGroup(String longId)
 	{
@@ -54,20 +56,16 @@ public class GroupInfoPacket
 			if (member.getString("id").startsWith("4"))
 				continue;
 
-			try
+			GroupUser.Role role = GroupUser.Role.USER;
+
+			Optional<User> optional = api.getClient().getUser(member.getString("id").split("8:")[1]);
+
+			if (optional.isPresent())
 			{
-				GroupUser.Role role = GroupUser.Role.USER;
-
-				User ussr = api.getClient().getSimpleUser(member.getString("id").split("8:")[1]);
-
 				if (!member.getString("role").equals("User"))
 					role = GroupUser.Role.MASTER;
 
-				group.getClients().add(new GroupUser(ussr, role, group));
-			}
-			catch (Exception e)
-			{
-				api.getLogger().log(Level.SEVERE, "Unable to get a users info", e);
+				group.getClients().add(new GroupUser(optional.get(), role, group));
 			}
 		}
 		return group;
@@ -97,13 +95,15 @@ public class GroupInfoPacket
 
 					GroupUser.Role role = GroupUser.Role.USER;
 
-					User usr = api.getClient().getSimpleUser(member.getString("id").split("8:")[1]);
+					Optional<User> optional = api.getClient().getUser(member.getString("id").split("8:")[1]);
 
-					if (!member.getString("role").equals("User"))
-						role = GroupUser.Role.MASTER;
+					if (optional.isPresent())
+					{
+						if (!member.getString("role").equals("User"))
+							role = GroupUser.Role.MASTER;
 
-					groupMembers.add(new GroupUser(usr, role, new GroupImpl(api, id)));
-
+						groupMembers.add(new GroupUser(optional.get(), role, new GroupImpl(api, id)));
+					}
 				}
 				catch (Exception e)
 				{
@@ -122,6 +122,10 @@ public class GroupInfoPacket
 		{
 			return null;
 		}
+	}
 
+	@Override
+	public void init()
+	{
 	}
 }

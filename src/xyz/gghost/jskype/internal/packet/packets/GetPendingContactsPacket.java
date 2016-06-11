@@ -3,57 +3,50 @@ package xyz.gghost.jskype.internal.packet.packets;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
-import xyz.gghost.jskype.exception.BadResponseException;
-import xyz.gghost.jskype.exception.NoPendingContactsException;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.model.User;
 
-@AllArgsConstructor
-public class GetPendingContactsPacket
+public class GetPendingContactsPacket extends Packet
 {
-	private final SkypeAPI api;
+	public GetPendingContactsPacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
-	public ArrayList<User> getPending() throws NoPendingContactsException, BadResponseException
+	public Optional<List<User>> getPenidngContacts()
 	{
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setType(RequestType.GET);
 		packet.setUrl("https://api.skype.com/users/self/contacts/auth-request");
-		String a = packet.makeRequest();
-		if (a == null)
+
+		String data = packet.makeRequest();
+
+		if (data == null || data.isEmpty())
+			return Optional.empty();
+
+		ArrayList<User> pending = new ArrayList<User>();
+		JSONArray json = new JSONArray(data);
+
+		for (int i = 0; i < json.length(); i++)
 		{
-			// api.getLogger().warning("Failed to get contact requests");
-			throw new BadResponseException();
-		}
-		else
-		{
-			if (a.equals(""))
-			{
-				// api.getLogger().info("No contact requests available");
-				throw new NoPendingContactsException();
-			}
-			ArrayList<User> pending = new ArrayList<User>();
-			JSONArray json = new JSONArray(a);
-			for (int i = 0; i < json.length(); i++)
-			{
-				JSONObject object = json.getJSONObject(i);
-				pending.add(new GetProfilePacket(api).getUser(object.getString("sender")));
-			}
-			return pending;
+			JSONObject object = json.getJSONObject(i);
+			pending.add(new GetProfilePacket(api).getUser(object.getString("sender")));
 		}
 
+		return Optional.of(pending);
 	}
 
 	public void acceptRequest(String user)
 	{
-		boolean canLog = api.getClient().isAllowLogging();
-		api.getClient().setAllowLogging(false);
 		String URL = "https://api.skype.com/users/self/contacts/auth-request/" + user + "/accept";
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setData("");
@@ -89,7 +82,6 @@ public class GetPendingContactsPacket
 		packet2.setIsForm(true);
 		packet2.setType(RequestType.POST);
 		packet2.makeRequest();
-		api.getClient().setAllowLogging(canLog);
 	}
 
 	public void acceptRequest(User usr)
@@ -118,5 +110,10 @@ public class GetPendingContactsPacket
 		{
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void init()
+	{
 	}
 }

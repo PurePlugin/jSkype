@@ -2,16 +2,18 @@ package xyz.gghost.jskype.internal.packet.packets;
 
 import org.json.JSONObject;
 
-import lombok.AllArgsConstructor;
 import xyz.gghost.jskype.SkypeAPI;
+import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.message.Message;
 
-@AllArgsConstructor
-public class SendMessagePacket
+public class SendMessagePacket extends Packet
 {
-	private final SkypeAPI api;
+	public SendMessagePacket(SkypeAPI api)
+	{
+		super(api);
+	}
 
 	public Message editMessage(Message msg, String edit)
 	{
@@ -35,7 +37,7 @@ public class SendMessagePacket
 	{
 		String id = String.valueOf(System.currentTimeMillis());
 		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
-		msg.setSender(api.getClient().getSimpleUser(api.getClient().getUsername()));
+		msg.setSender(api.getClient().getUser(api.getClient().getUsername()).get());
 		msg.setUpdateUrl(url);
 		msg.setTime(id);
 		msg.setId(id);
@@ -56,7 +58,7 @@ public class SendMessagePacket
 		String id = String.valueOf(System.currentTimeMillis());
 		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
 
-		msg.setSender(api.getClient().getSimpleUser(api.getClient().getUsername()));
+		msg.setSender(api.getClient().getUser(api.getClient().getUsername()).get());
 		msg.setUpdateUrl(url);
 		msg.setTime(id);
 		msg.setId(id);
@@ -70,5 +72,10 @@ public class SendMessagePacket
 		packet.makeRequest();
 
 		return msg;
+	}
+
+	@Override
+	public void init()
+	{
 	}
 }

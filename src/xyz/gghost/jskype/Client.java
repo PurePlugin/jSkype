@@ -1,7 +1,6 @@
 package xyz.gghost.jskype;
 
 import java.io.FileInputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,8 +13,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import lombok.Data;
-import xyz.gghost.jskype.exception.BadResponseException;
-import xyz.gghost.jskype.exception.NoPendingContactsException;
 import xyz.gghost.jskype.internal.auth.Auth;
 import xyz.gghost.jskype.internal.impl.UserImpl;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
@@ -33,7 +30,6 @@ import xyz.gghost.jskype.internal.threads.Poller;
 import xyz.gghost.jskype.message.MessageHistory;
 import xyz.gghost.jskype.model.Group;
 import xyz.gghost.jskype.model.LocalAccount;
-import xyz.gghost.jskype.model.LoginTokens;
 import xyz.gghost.jskype.model.User;
 import xyz.gghost.jskype.model.Visibility;
 
@@ -42,10 +38,11 @@ public class Client
 {
 	private final UUID uniqueId = UUID.randomUUID();
 
+	private final Auth auth = new Auth(this);
+
 	private final List<User> contacts = new ArrayList<>();
 	private final List<Group> groups = new ArrayList<>();
 	private final Map<String, MessageHistory> chatHistory = new HashMap<>();
-	private final LoginTokens loginTokens = new LoginTokens();
 
 	private final SkypeAPI api;
 	private final String username;
@@ -53,10 +50,6 @@ public class Client
 
 	private Visibility visibility = Visibility.ONLINE;
 
-	private boolean relog = false;
-
-	private boolean allowLogging = true;
-	private boolean loaded;
 	private Poller poller;
 	private Thread contactUpdater;
 	private Thread pinger;
@@ -65,9 +58,7 @@ public class Client
 
 	public void login() throws Exception
 	{
-		new Auth().login(api);
-
-		relog = true;
+		auth.login();
 
 		pinger = new Ping(api);
 		pinger.start();
@@ -87,7 +78,6 @@ public class Client
 
 	public void logout() throws Exception
 	{
-		poller.stopThreads();
 		pinger.interrupt();
 		contactUpdater.interrupt();
 		poller.interrupt();
@@ -100,33 +90,23 @@ public class Client
 		return new GetProfilePacket(api).getMe();
 	}
 
-	public void setProfilePicture(String file)
+	public void setProfilePicture(String file) throws Exception
 	{
-		try
-		{
-			PacketBuilderUploader uploader = new PacketBuilderUploader(api);
-			uploader.setSendLoginHeaders(true);
-			uploader.setUrl("https://api.skype.com/users/" + username + "/profile/avatar");
-			uploader.setType(RequestType.PUT);
-			uploader.makeRequest(new FileInputStream(file));
-		}
-		catch (Exception e)
-		{
-			api.getLogger().severe("Unable to set profile picture, " + e.getLocalizedMessage());
-		}
+		PacketBuilderUploader uploader = new PacketBuilderUploader(api);
+		uploader.setSendLoginHeaders(true);
+		uploader.setUrl("https://api.skype.com/users/" + username + "/profile/avatar");
+		uploader.setType(RequestType.PUT);
+		uploader.makeRequest(new FileInputStream(file));
 	}
 
 	public Optional<User> getUser(String username)
 	{
-		return contacts.stream().filter(contact -> contact.getUsername().equalsIgnoreCase(username)).findFirst();
-	}
+		Optional<User> optional = contacts.stream().filter(contact -> contact.getUsername().equalsIgnoreCase(username)).findFirst();
 
-	public User getSimpleUser(String username)
-	{
-		if (getUser(username).isPresent())
-			return getUser(username).get();
+		if (!optional.isPresent())
+			return Optional.of(new UserImpl(username));
 
-		return new UserImpl(username);
+		return optional;
 	}
 
 	public User getUserByUsername(String username)
@@ -157,9 +137,9 @@ public class Client
 		new GetPendingContactsPacket(api).acceptRequest(username);
 	}
 
-	public ArrayList<User> getContactRequests() throws BadResponseException, NoPendingContactsException
+	public Optional<List<User>> getContactRequests()
 	{
-		return new GetPendingContactsPacket(api).getPending();
+		return new GetPendingContactsPacket(api).getPenidngContacts();
 	}
 
 	public Client setVisibility(Visibility visibility)
@@ -172,40 +152,26 @@ public class Client
 		return this;
 	}
 
-	public List<User> searchSkypeDB(String keywords)
+	public List<User> searchSkypeDB(String keywords) throws Exception
 	{
-		try
-		{
-			PacketBuilder packet = new PacketBuilder(api);
-			packet.setType(RequestType.GET);
-			packet.setUrl("https://api.skype.com/search/users/any?keyWord=" + URLEncoder.encode(keywords, "UTF-8") + "&contactTypes[]=skype");
-			String data = packet.makeRequest();
+		PacketBuilder packet = new PacketBuilder(api);
+		packet.setType(RequestType.GET);
+		packet.setUrl("https://api.skype.com/search/users/any?keyWord=" + URLEncoder.encode(keywords, "UTF-8") + "&contactTypes[]=skype");
 
-			if (data == null)
-				return null;
+		String data = packet.makeRequest();
 
-			JSONArray jsonArray = new JSONArray(data);
-			ArrayList<String> usernames = new ArrayList<String>();
+		if (data == null)
+			return null;
 
-			for (int i = 0; i < jsonArray.length(); i++)
-			{
-				JSONObject contact = jsonArray.getJSONObject(i);
-				usernames.add(contact.getJSONObject("ContactCards").getJSONObject("Skype").getString("SkypeName"));
-			}
+		JSONArray jsonArray = new JSONArray(data);
+		ArrayList<String> usernames = new ArrayList<String>();
 
-			return new GetProfilePacket(api).getUsers(usernames);
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			e.printStackTrace();
-		}
+		for (int i = 0; i < jsonArray.length(); i++)
+			usernames.add(jsonArray.getJSONObject(i).getJSONObject("ContactCards").getJSONObject("Skype").getString("SkypeName"));
 
-		return null;
+		return new GetProfilePacket(api).getUsers(usernames);
 	}
 
-	/**
-	 * Create a new group
-	 */
 	public Group createNewGroup()
 	{
 		JSONObject json = new JSONObject().put("members", new JSONArray().put(new JSONObject().put("id", "8:" + username).put("role", "Admin")));
@@ -223,10 +189,7 @@ public class Client
 		return new GroupInfoPacket(api).getGroup(idLong);
 	}
 
-	/**
-	 * Attempts to make a group with users... might not work
-	 */
-	public Group createNewGroupWithUsers(ArrayList<String> users)
+	public Group createNewGroupWithUsers(String... users)
 	{
 		JSONArray members = new JSONArray().put(new JSONObject().put("id", "8:" + username).put("role", "Admin"));
 
@@ -248,13 +211,9 @@ public class Client
 		return new GroupInfoPacket(api).getGroup(idLong);
 	}
 
-	/**
-	 * Join a group from a skype invite link
-	 */
 	public void joinInviteLink(String url)
 	{
 		PacketBuilder getId = new PacketBuilder(api);
-		System.out.println(url);
 		getId.setUrl("https://join.skype.com/api/v1/meetings/" + url.split(".com/")[1]);
 		getId.setType(RequestType.GET);
 		String a = getId.makeRequest();
@@ -271,22 +230,8 @@ public class Client
 			return;
 
 		reJoinGroup(new JSONObject(b).getString("ThreadId"));
-
 	}
 
-	/**
-	 * Kicked and the group is still joionable? Use this method!
-	 */
-	public void reJoinGroup(Group group)
-	{
-		reJoinGroup(group.getLongId());
-	}
-
-	/**
-	 * Join a joinable group from it's long id
-	 * 
-	 * @param longId
-	 */
 	public void reJoinGroup(String longId)
 	{
 		new UserManagementPacket(api).addUser(longId, username);

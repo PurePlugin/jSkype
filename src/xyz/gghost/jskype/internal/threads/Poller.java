@@ -50,31 +50,29 @@ public class Poller extends Thread
 	{
 		while (this.isAlive() || breakl)
 		{
-			Thread a = new Thread()
+			Thread thread = new Thread(() ->
 			{
-				@Override
-				public void run()
-				{
-					poll();
-				}
-			};
-			threads.add(a);
-			a.start();
+				poll();
+			});
+
+			threads.add(thread);
+			thread.start();
 
 			try
 			{
 				sleep(250);
 			}
-			catch (Exception e)
+			catch (InterruptedException e)
 			{
 			}
 		}
 	}
 
-	public void stopThreads()
+	@Override
+	public void interrupt()
 	{
-		breakl = true;
 		threads.forEach(thread -> thread.interrupt());
+		super.interrupt();
 	}
 
 	private void poll()
@@ -113,11 +111,6 @@ public class Poller extends Thread
 						{
 							chat = new ContactGroupImpl(api, "8:" + object.getString("resourceLink").split("/8:")[1].split("/")[0]);
 						}
-					}
-					else
-					{
-						// api.log("Non-group data received from skype. This is
-						// ignorable.");
 					}
 
 					if (object.getString("resourceType").equals("UserPresence") && object.getJSONObject("resource").getString("id").equals("messagingService"))
@@ -330,13 +323,13 @@ public class Poller extends Thread
 					// add username
 					newUsers.add(user.getString("id").split("8:")[1]);
 
-					try
+					GroupUser.Role role = GroupUser.Role.USER;
+
+					Optional<User> optional = api.getClient().getUser(user.getString("id").split("8:")[1]);
+
+					if (optional.isPresent())
 					{
-
-						GroupUser.Role role = GroupUser.Role.USER;
-
-						// get user without searching skypes database
-						User ussr = api.getClient().getSimpleUser(user.getString("id").split("8:")[1]);
+						User ussr = optional.get();
 
 						if (!user.getString("role").equals("User"))
 							role = GroupUser.Role.MASTER;
@@ -349,11 +342,8 @@ public class Poller extends Thread
 
 						GroupUser gu = new GroupUser(ussr, role, group);
 						group.getClients().add(gu);
+					}
 
-					}
-					catch (Exception ignored)
-					{
-					}
 				}
 
 				oldUsers.removeAll(newUsers);
@@ -384,8 +374,7 @@ public class Poller extends Thread
 		{
 			api.getLogger().severe("#################################################");
 
-			if (api.getClient().isAllowLogging())
-				e.printStackTrace();
+			e.printStackTrace();
 
 			api.getLogger().severe("#################################################");
 			api.getLogger().severe("Failed to update group info. Have we just loaded?");

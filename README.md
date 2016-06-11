@@ -1,5 +1,7 @@
 # jSkype
-jSkype creation started when skype4web was released, however at the time I was making a private Skype client in Java, not an API. Samczsun, better known as super salter 9000 was creating an extremely limited api at the time of my client creation and still is today. In order to spare people from his limited api, I'm releasing jSkype. 
+jSkype is a java skype API that allows you to easily create bots.
+This API will provide you with a thread-safe & reflectionless event bus
+and a command bus;
 
 #Features (confirmed)
 - Ping chats with images

@@ -14,14 +14,10 @@ public class CommandBus
 	@Setter
 	private String prefix = ".";
 
-	private final SkypeAPI api;
-
 	private List<Command> commands = new ArrayList<>();
 
 	public CommandBus(SkypeAPI api)
 	{
-		this.api = api;
-
 		api.getEventBus().register(UserChatEvent.class, event ->
 		{
 			String message = event.getMsg().getMessage();
@@ -35,7 +31,7 @@ public class CommandBus
 
 			for (Command command : commands)
 			{
-				if (command.getAliases().contains(message.split(" ")[0].replace(".", " ")))
+				if (command.getAliases().contains(message.split(" ")[0].replace(prefix, "")))
 				{
 					toExecute = command;
 					break;
@@ -49,7 +45,7 @@ public class CommandBus
 
 			toExecute.setChat(event.getGroup());
 			toExecute.setSender(event.getUser());
-			toExecute.setArgs(event.getMsg().getMessage().split(" "));
+			toExecute.setArgs(message.split(" "));
 			toExecute.execute();
 		});
 	}
