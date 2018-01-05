@@ -1,17 +1,20 @@
 package xyz.gghost.jskype.events;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+
 import xyz.gghost.jskype.events.base.CancellableEvent;
 import xyz.gghost.jskype.model.Group;
 import xyz.gghost.jskype.model.User;
 
-@Getter
-@AllArgsConstructor
-public class TopicChangedEvent extends CancellableEvent
-{
-	private final Group group;
-	private final User user;
-	private final String topic;
-	private final String oldTopic;
+public class TopicChangedEvent extends CancellableEvent {
+	private Group group;
+	private User user;
+	private String topic;
+	private String oldTopic;
+
+	public TopicChangedEvent(Group g, User u, String t, String o) {
+		group = g;
+		user = u;
+		topic = t;
+		oldTopic = o;
+	}
 }

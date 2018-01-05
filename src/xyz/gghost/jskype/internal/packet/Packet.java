@@ -1,12 +1,13 @@
 package xyz.gghost.jskype.internal.packet;
 
-import lombok.Data;
 import xyz.gghost.jskype.SkypeAPI;
 
-@Data
-public abstract class Packet
-{
-	protected final SkypeAPI api;
+public abstract class Packet {
+	protected SkypeAPI api;
 
+	public Packet(SkypeAPI a){
+		api = a;
+	}
+	
 	public abstract void init();
 }

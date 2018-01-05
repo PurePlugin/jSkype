@@ -1,7 +1,5 @@
 package xyz.gghost.jskype.events;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import xyz.gghost.jskype.events.base.Event;
 import xyz.gghost.jskype.model.Group;
 import xyz.gghost.jskype.model.User;
@@ -10,11 +8,14 @@ import xyz.gghost.jskype.model.User;
 /**
  * Event not in use - careful when using UserTypingEvent
  */
-@Getter
-@AllArgsConstructor
-public class UserStoppedTypingEvent extends Event
-{
+
+public class UserStoppedTypingEvent extends Event {
 
 	private final Group group;
 	private final User user;
+	
+	public UserStoppedTypingEvent(Group g, User u){
+		group = g;
+		user = u;
+	}
 }

@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,15 +14,12 @@ import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.model.User;
 
-public class GetPendingContactsPacket extends Packet
-{
-	public GetPendingContactsPacket(SkypeAPI api)
-	{
+public class GetPendingContactsPacket extends Packet {
+	public GetPendingContactsPacket(SkypeAPI api) {
 		super(api);
 	}
 
-	public Optional<List<User>> getPenidngContacts()
-	{
+	public List<User> getPenidngContacts() {
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setType(RequestType.GET);
 		packet.setUrl("https://api.skype.com/users/self/contacts/auth-request");
@@ -31,22 +27,24 @@ public class GetPendingContactsPacket extends Packet
 		String data = packet.makeRequest();
 
 		if (data == null || data.isEmpty())
-			return Optional.empty();
+			return null;
 
 		ArrayList<User> pending = new ArrayList<User>();
+		try{
 		JSONArray json = new JSONArray(data);
 
-		for (int i = 0; i < json.length(); i++)
-		{
+		for (int i = 0; i < json.length(); i++) {
 			JSONObject object = json.getJSONObject(i);
 			pending.add(new GetProfilePacket(api).getUser(object.getString("sender")));
 		}
 
-		return Optional.of(pending);
+		return pending;
+		}catch(Exception e){
+			return null;
+		}
 	}
 
-	public void acceptRequest(String user)
-	{
+	public void acceptRequest(String user) {
 		String URL = "https://api.skype.com/users/self/contacts/auth-request/" + user + "/accept";
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setData("");
@@ -67,8 +65,7 @@ public class GetPendingContactsPacket extends Packet
 		// TODO: Find a replacement for json.org that supports json building
 		String data = "{\"contacts\": [";
 		boolean first = true;
-		for (User usr : api.getClient().getContacts())
-		{
+		for (User usr : api.getClient().getContacts()) {
 			data = data + (!first ? "," : "");
 			data = data + "{\"id\": \"" + usr.getUsername() + "\"}";
 			first = false;
@@ -84,20 +81,16 @@ public class GetPendingContactsPacket extends Packet
 		packet2.makeRequest();
 	}
 
-	public void acceptRequest(User usr)
-	{
+	public void acceptRequest(User usr) {
 		acceptRequest(usr.getUsername());
 	}
 
-	public void sendRequest(String user)
-	{
+	public void sendRequest(String user) {
 		sendRequest(user, "Hi, I'd like to add you as a contact. -Sent from jSkype");
 	}
 
-	public void sendRequest(String user, String message)
-	{
-		try
-		{
+	public void sendRequest(String user, String message) {
+		try {
 			String URL = "https://api.skype.com/users/self/contacts/auth-request/" + user;
 			PacketBuilder packet = new PacketBuilder(api);
 			packet.setData("greeting=" + URLEncoder.encode(message, "UTF-8"));
@@ -105,15 +98,12 @@ public class GetPendingContactsPacket extends Packet
 			packet.setIsForm(true);
 			packet.setType(RequestType.PUT);
 			packet.makeRequest();
-		}
-		catch (UnsupportedEncodingException e)
-		{
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public void init()
-	{
+	public void init() {
 	}
 }

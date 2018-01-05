@@ -9,13 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import lombok.Data;
 import xyz.gghost.jskype.SkypeAPI;
 
-@Data
-public class PacketBuilder
-{
-	protected final SkypeAPI api;
+public class PacketBuilder {
+	protected SkypeAPI api;
 	protected final List<Header> headers = new ArrayList<>();
 
 	protected String url = "";
@@ -28,15 +25,20 @@ public class PacketBuilder
 	protected boolean file = false;
 	protected String cookies = "";
 
-	public void addHeader(String key, String value)
-	{
+	public PacketBuilder(SkypeAPI api) {
+		this.api = api;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void addHeader(String key, String value) {
 		headers.add(new Header(key, value));
 	}
 
-	public String makeRequest()
-	{
-		try
-		{
+	public String makeRequest() {
+		try {
 			con = (HttpURLConnection) new URL(url).openConnection();
 			con.setRequestMethod((type == RequestType.GET ? "GET" : (type == RequestType.POST ? "POST" : (type == RequestType.PUT ? "PUT" : (type == RequestType.DELETE ? "DELETE" : "OPTIONS")))));
 
@@ -49,16 +51,16 @@ public class PacketBuilder
 
 			con.setDoOutput(true);
 
-			if (sendLoginHeaders)
-			{
+			if (sendLoginHeaders) {
 				addHeader("RegistrationToken", api.getClient().getAuth().getLoginToken().getReg());
 				addHeader("X-Skypetoken", api.getClient().getAuth().getLoginToken().getXToken());
 			}
 
-			headers.forEach(header -> con.addRequestProperty(header.getType(), header.getData()));
+			for (Header header : headers) {
+				con.addRequestProperty(header.getType(), header.getData());
+			}
 
-			if (!(data.getBytes().length == 0))
-			{
+			if (!(data.getBytes().length == 0)) {
 				DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 				wr.write(data.getBytes());
 				wr.flush();
@@ -67,8 +69,7 @@ public class PacketBuilder
 
 			code = con.getResponseCode();
 
-			if (code == 200 || code == 201)
-			{
+			if (code == 200 || code == 201) {
 				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
@@ -79,31 +80,23 @@ public class PacketBuilder
 				in.close();
 				return response.toString() == null ? "" : response.toString();
 
-			}
-			else if (code == 401)
-			{
+			} else if (code == 401) {
 				api.getLogger().severe("Bad login...");
 				api.getLogger().severe(this.url + " returned 401. \nHave you been running jSkype for more than 2 days?\nWithin 4 seconds the ping-er should relog you in.\n\n");
 
-				headers.forEach(header -> api.getLogger().severe(header.getType() + ": " + header.getData()));
+				for (Header header : headers) {
+					api.getLogger().severe(header.getType() + ": " + header.getData());
+				}
 				return "---";
-			}
-			else if (code == 204)
-			{
+			} else if (code == 204) {
 				return "";
-			}
-			else
-			{
-				if (code == 404 && url.toLowerCase().contains("endpoint"))
-				{
+			} else {
+				if (code == 404 && url.toLowerCase().contains("endpoint")) {
 					api.getLogger().severe("Lost connection to skype.\nReloggin!");
 
-					try
-					{
+					try {
 						api.login();
-					}
-					catch (Exception e)
-					{
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
@@ -115,14 +108,49 @@ public class PacketBuilder
 				// Debug info
 				api.getLogger().severe("Error contacting skype\nUrl: " + url + "\nCode: " + code + "\nData: " + data + "\nType: " + type);
 
-				headers.forEach(header -> api.getLogger().severe(header.getType() + ": " + header.getData()));
+				for(Header header : headers) api.getLogger().severe(header.getType() + ": " + header.getData());
 				return null;
 			}
-		}
-		catch (Exception e)
-		{
-			api.getLogger().log(Level.SEVERE, "Unable to request the skype api. URL='" + url + "'", e);
+		} catch (Exception e) {
+			System.out.println("Unable to request the skype api. URL='" + url + "'");
+			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public void setUrl(String u) {
+		url = u;
+	}
+
+	public String getData() {
+		return data;
+	}
+
+	public void setData(String d) {
+		data = d;
+	}
+
+	public int getCode() {
+		return code;
+	}
+
+	public void setType(RequestType t) {
+		type = t;
+	}
+
+	public void setIsForm(boolean b) {
+		isForm = b;
+	}
+
+	public HttpURLConnection getCon() {
+		return con;
+	}
+
+	public void setSendLoginHeaders(boolean s) {
+		sendLoginHeaders = s;
+	}
+
+	public void setFile(boolean f) {
+		file = f;
 	}
 }

@@ -5,8 +5,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
 import xyz.gghost.jskype.SkypeAPI;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
@@ -18,28 +16,36 @@ import xyz.gghost.jskype.message.MessageHistory;
 import xyz.gghost.jskype.model.Group;
 import xyz.gghost.jskype.model.GroupUser;
 
-@Getter
-public class GroupImpl implements Group
-{
+public class GroupImpl implements Group {
+
+	public void setTopic(String topic) {
+		this.topic = topic;
+	}
+
+	public void setPictureUrl(String picture) {
+		this.pictureUrl = picture;
+	}
+
+	@Override
+	public String getPictureUrl() {
+		return pictureUrl;
+	}
+
 	private final SkypeAPI api;
 	private final String id;
 
-	@Setter
 	private String topic = "";
-	@Setter
 	private String pictureUrl = "";
 
 	private List<GroupUser> clients = new ArrayList<GroupUser>();
 
-	public GroupImpl(SkypeAPI api, String id)
-	{
+	public GroupImpl(SkypeAPI api, String id) {
 		this.api = api;
 		this.id = id;
 	}
 
 	@Override
-	public MessageHistory getMessageHistory()
-	{
+	public MessageHistory getMessageHistory() {
 		if (api.getClient().getChatHistory().containsKey(id))
 			return api.getClient().getChatHistory().get(id);
 
@@ -49,105 +55,83 @@ public class GroupImpl implements Group
 	}
 
 	@Override
-	public void kick(String usr)
-	{
+	public void kick(String usr) {
 		new UserManagementPacket(api).kickUser(getLongId(), usr);
 	}
 
 	@Override
-	public void add(String usr)
-	{
+	public void add(String usr) {
 		new UserManagementPacket(api).addUser(getLongId(), usr);
 	}
 
 	@Override
-	public void setAdmin(String usr, boolean admin)
-	{
-		if (admin)
-		{
+	public void setAdmin(String usr, boolean admin) {
+		if (admin) {
 			new UserManagementPacket(api).promoteUser(getLongId(), usr);
-		}
-		else
+		} else
 			add(usr);
 	}
 
 	@Override
-	public String getId()
-	{
-		try
-		{
+	public String getId() {
+		try {
 			return id.split("@")[0].split(":")[1];
-		}
-		catch (Exception e)
-		{
-			try
-			{
+		} catch (Exception e) {
+			try {
 				return id.split("8:")[1];
-			}
-			catch (Exception je)
-			{
+			} catch (Exception je) {
 				return id;
 			}
 		}
 	}
 
 	@Override
-	public String getLongId()
-	{
+	public String getLongId() {
 		return id;
 	}
 
 	@Override
-	public Message sendMessage(Message msg)
-	{
+	public Message sendMessage(Message msg) {
 		return new SendMessagePacket(api).sendMessage(id, msg);
 	}
 
 	@Override
-	public Message sendMessage(String msg)
-	{
+	public Message sendMessage(String msg) {
 		return new SendMessagePacket(api).sendMessage(id, new Message(msg));
 	}
 
 	@Override
-	public Message sendImage(File url)
-	{
+	public Message sendImage(File url) {
 		return new SendMessagePacket(api).sendPing(id, new Message(""), new PingPrepPacket(api).urlToId(url, id));
 	}
 
 	@Override
-	public Message sendImage(URL url)
-	{
+	public Message sendImage(URL url) {
 		return new SendMessagePacket(api).sendPing(id, new Message(""), new PingPrepPacket(api).urlToId(url.toString(), id));
 	}
 
 	@Override
-	public List<GroupUser> getClients()
-	{
+	public List<GroupUser> getClients() {
 		return clients;
 	}
 
 	@Override
-	public String getTopic()
-	{
+	public String getTopic() {
 		return topic;
 	}
 
 	@Override
-	public boolean isUserChat()
-	{
+	public boolean isUserChat() {
 		return !getLongId().contains("19:");
 	}
 
 	@Override
-	public void leave()
-	{
+	public void leave() {
 		kick(api.getClient().getUsername());
 	}
 
 	@Override
-	public boolean isAdmin()
-	{
+	public boolean isAdmin() {
 		for (GroupUser user : getClients())
 			if (user.getUser().getUsername().equals(api.getClient().getUsername()) && user.role.equals(GroupUser.Role.MASTER))
 				return true;
@@ -156,8 +140,7 @@ public class GroupImpl implements Group
 	}
 
 	@Override
-	public boolean isAdmin(String usr)
-	{
+	public boolean isAdmin(String usr) {
 		for (GroupUser user : getClients())
 			if (user.getUser().getUsername().equals(usr) && user.role.equals(GroupUser.Role.MASTER))
 				return true;
@@ -166,8 +149,7 @@ public class GroupImpl implements Group
 	}
 
 	@Override
-	public void changeTopic(String topic)
-	{
+	public void changeTopic(String topic) {
 		PacketBuilder pb = new PacketBuilder(api);
 		pb.setUrl("https://client-s.gateway.messenger.live.com/v1/threads/" + id + "/properties?name=topic");
 		pb.setType(RequestType.PUT);

@@ -12,13 +12,18 @@ import xyz.gghost.jskype.model.GroupUser;
 /**
  * Created by Ghost on 19/09/2015.
  */
-public class ContactGroupImpl extends GroupImpl implements Group
-{
+public class ContactGroupImpl extends GroupImpl implements Group {
+
+	@Override
+	public String getPictureUrl() {
+		// TODO: Implement this method
+		return null;
+	}
+	
 	private final SkypeAPI api;
 	private final String id;
 
-	public ContactGroupImpl(SkypeAPI api, String longId)
-	{
+	public ContactGroupImpl(SkypeAPI api, String longId) {
 		super(api, longId);
 
 		this.api = api;
@@ -26,73 +31,61 @@ public class ContactGroupImpl extends GroupImpl implements Group
 	}
 
 	@Override
-	public void kick(String usr)
-	{
+	public void kick(String usr) {
 	}
 
 	@Override
-	public void add(String usr)
-	{
+	public void add(String usr) {
 	}
 
 	@Override
-	public void leave()
-	{
+	public void leave() {
 	}
 
 	@SuppressWarnings("unused")
 	@Override
-	public List<GroupUser> getClients()
-	{
+	public List<GroupUser> getClients() {
 		List<GroupUser> users = new ArrayList<GroupUser>();
 		// TODO: add the two people
 		return new ArrayList<GroupUser>();
 	}
 
 	@Override
-	public String getId()
-	{
+	public String getId() {
 		return id.split("8:")[1];
 	}
 
-	public String getUsername()
-	{
+	public String getUsername() {
 		return id.split("8:")[1];
 	}
 
 	@Override
-	public String getLongId()
-	{
+	public String getLongId() {
 		return id;
 	}
 
 	@Override
-	public Message sendMessage(Message msg)
-	{
+	public Message sendMessage(Message msg) {
 		return new SendMessagePacket(api).sendMessage(id, msg);
 	}
 
 	@Override
-	public Message sendMessage(String msg)
-	{
+	public Message sendMessage(String msg) {
 		return new SendMessagePacket(api).sendMessage(id, new Message(msg));
 	}
 
 	@Override
-	public String getTopic()
-	{
+	public String getTopic() {
 		return getUsername();
 	}
 
 	@Override
-	public boolean isAdmin()
-	{
+	public boolean isAdmin() {
 		return false;
 	}
 
 	@Override
-	public boolean isAdmin(String usr)
-	{
+	public boolean isAdmin(String usr) {
 		return false;
 	}
 }

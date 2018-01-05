@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,16 +15,13 @@ import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.model.User;
 
-public class GetContactsPacket extends Packet
-{
-	public GetContactsPacket(SkypeAPI api)
-	{
+public class GetContactsPacket extends Packet {
+	public GetContactsPacket(SkypeAPI api) {
 		super(api);
 	}
 
 	@Override
-	public void init()
-	{
+	public void init() {
 		List<User> contacts;
 		HashMap<String, Boolean> blocked = new HashMap<String, Boolean>();
 		ArrayList<String> usernames = new ArrayList<String>();
@@ -37,28 +33,25 @@ public class GetContactsPacket extends Packet
 
 		String data = packet.makeRequest();
 
-		if (data == null)
-		{
+		if (data == null) {
 			api.getLogger().severe("Failed to request Skype for your contacts.");
 			api.getLogger().severe("Code: " + packet.getCode() + "\nData: " + packet.getData() + "\nURL: " + packet.getUrl());
 
-			if (api.getClient().getContacts().size() == 0)
-			{
-				Optional<User> optional = api.getClient().getUser(api.getClient().getUsername());
+			if (api.getClient().getContacts().size() == 0) {
+				User optional = api.getClient().getUser(api.getClient().getUsername());
 
-				if (optional.isPresent())
-					api.getClient().getContacts().add(optional.get());
+				if (optional != null)
+					api.getClient().getContacts().add(optional);
 			}
 			return;
 		}
 
-		try
-		{
+		try {
 			JSONObject jsonObject = new JSONObject(data);
 			JSONArray lineItems = jsonObject.getJSONArray("contacts");
 
-			for (Object o : lineItems)
-			{
+			for (int i = 0; i < lineItems.length(); i++) {
+				Object o = lineItems.get(i);
 				JSONObject jsonLineItem = (JSONObject) o;
 
 				usernames.add(jsonLineItem.getString("id"));
@@ -67,21 +60,17 @@ public class GetContactsPacket extends Packet
 
 			contacts = new GetProfilePacket(api).getUsers(usernames);
 
-			if (contacts != null)
-			{
-				for (User user : contacts)
-				{
+			if (contacts != null) {
+				for (User user : contacts) {
 					((UserImpl) user).setContact(true);
 					((UserImpl) user).setBlocked(blocked.get(user.getUsername()));
 
 					Iterator<User> iterator = api.getClient().getContacts().iterator();
 
-					while (iterator.hasNext())
-					{
+					while (iterator.hasNext()) {
 						User u = iterator.next();
 
-						if (u.getUsername().equals(user.getUsername()))
-						{
+						if (u.getUsername().equals(user.getUsername())) {
 							iterator.remove();
 							api.getClient().getContacts().add(user);
 							break;
@@ -89,9 +78,7 @@ public class GetContactsPacket extends Packet
 					}
 				}
 			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

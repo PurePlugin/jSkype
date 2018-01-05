@@ -3,7 +3,7 @@ jSkype is a java skype API that allows you to easily create bots.
 This API will provide you with a thread-safe & reflectionless event bus
 and a command bus;
 
-#Features (confirmed)
+## Features (confirmed)
 - Ping chats with images
 - Get contact requests
 - Get recent groups
@@ -23,7 +23,7 @@ and a command bus;
 - Create and join groups
 - Promote and demote users
  
-#Events
+## Events
 - Edit message (UserChatEvent#isEdited)
 - TopicChangedEvent (Cancellable)
 - UserChatEvent
@@ -39,7 +39,7 @@ and a command bus;
 - UserStatusChangedEvent (online status)
 - APILoadedEvent
 
-#Downloads, Javadocs, etc
+## Downloads, Javadocs, etc
 JavaDocs: http://gghost.xyz/JavaDocs/jSkype
 
 Maven: http://maven.gghost.xyz OR http://ghosted.me/maven
@@ -60,8 +60,8 @@ Dependency:
   <scope>compile</scope>
 </dependency>
 ```
-
-#Creating a skype instance
+## Usage
+### Creating a skype instance
 Before creating a Skype instance, you'll need to confirm whether or not you login with an email/pass or user/pass. If you login with a username and password, you can create a new instance of SkypeAPI with the arguments (username, password).
 
 Example user/pass: 
@@ -69,7 +69,7 @@ Example user/pass:
 SkypeAPI skype = new SkypeAPI("Username", "Password").login();
 ```
 
-#Sending chat messages
+### Sending chat messages
 Sending a message to all contacts example:
 ```java
 skype.getContacts().forEach(contact -> contact.sendMessage("Hi"));
@@ -83,11 +83,11 @@ Editing a message:
 Message message = group.sendMessage(skype, "Hi");
 message.editMessage("");
 ```
-## Formatting messages
+### Formatting messages
 
 MessageBuilder is the builder class for constructing string that is safe to pass to Group#sendMessage. In order to add text to the message builder, use #addText. Only use #addHtml with past outputs from #build and html code you know is safe. If you'd like to add two message builders together, simply builderA.build() + builderB.build() would work, however I recommend you to pass the old build output to the constructor of the new builder instance, if you want to make a clean message builder. Otherwise, you can use the FormatUtils class for small, quick jobs.
 
-#Example command handler usage:
+### Example command handler usage:
 
 ```java
 
@@ -117,7 +117,7 @@ public class Main
 
 ```
 
-#Example event handler usage:
+### Example event handler usage:
 
 ```java
 skype.getEventBus().register(UserJoinEvent.class, event ->
@@ -126,14 +126,14 @@ skype.getEventBus().register(UserJoinEvent.class, event ->
 });
 ```
 
-#TODO
+## TODO
 - Handle calls (Windows only + semi compatible with wine)
 
-#Dependencies
+## Dependencies
 - commons-lang 3
 - org.json (repo contains fork)
 - jsoup 
 - lombok
 
-#LICENSE
+## LICENSE
 See LICENSE file 
