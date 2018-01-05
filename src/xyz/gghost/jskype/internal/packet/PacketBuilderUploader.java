@@ -52,8 +52,10 @@ public class PacketBuilderUploader extends PacketBuilder
 				addHeader("X-Skypetoken", api.getClient().getAuth().getLoginToken().getXToken());
 			}
 
-			headers.forEach(header -> con.addRequestProperty(header.getType(), header.getData()));
-
+			for(Header header : headers){
+				con.addRequestProperty(header.getType(), header.getData());
+			}
+			
 			OutputStream wr = con.getOutputStream();
 
 			wr.write(bytes);
@@ -88,7 +90,9 @@ public class PacketBuilderUploader extends PacketBuilder
 			{
 				// Debug info
 				api.getLogger().info("Error contacting skype\nUrl: " + url + "\nCode: " + responseCode + "\nData: " + Arrays.toString(data));
-				headers.forEach(header -> api.getLogger().severe(header.getType() + ": " + header.getData()));
+				
+				for(Header header : headers)
+					api.getLogger().severe(header.getType() + ": " + header.getData());
 				return null;
 			}
 		}

@@ -2,8 +2,8 @@ package xyz.gghost.jskype.model;
 
 import xyz.gghost.jskype.SkypeAPI;
 
-public interface User
-{
+public interface User {
+	
 	String getDisplayName();
 
 	String getUsername();

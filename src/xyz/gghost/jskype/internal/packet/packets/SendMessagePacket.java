@@ -8,15 +8,12 @@ import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.RequestType;
 import xyz.gghost.jskype.message.Message;
 
-public class SendMessagePacket extends Packet
-{
-	public SendMessagePacket(SkypeAPI api)
-	{
+public class SendMessagePacket extends Packet {
+	public SendMessagePacket(SkypeAPI api) {
 		super(api);
 	}
 
-	public Message editMessage(Message msg, String edit)
-	{
+	public Message editMessage(Message msg, String edit) {
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setType(RequestType.POST);
 
@@ -25,7 +22,9 @@ public class SendMessagePacket extends Packet
 		if (edit == null || msg == null)
 			return msg;
 
-		packet.setData(new JSONObject().put("content", msg.getMessage()).put("messagetype", "RichText").put("contenttype", "text").put("skypeeditedid", msg.getId()).toString());
+		try {
+			packet.setData(new JSONObject().put("content", msg.getMessage()).put("messagetype", "RichText").put("contenttype", "text").put("skypeeditedid", msg.getId()).toString());
+		} catch (Exception e) {}
 
 		packet.setUrl(msg.getUpdateUrl());
 		packet.makeRequest();
@@ -33,11 +32,10 @@ public class SendMessagePacket extends Packet
 		return msg;
 	}
 
-	public Message sendPing(String longId, Message msg, String ids)
-	{
+	public Message sendPing(String longId, Message msg, String ids) {
 		String id = String.valueOf(System.currentTimeMillis());
 		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
-		msg.setSender(api.getClient().getUser(api.getClient().getUsername()).get());
+		msg.setSender(api.getClient().getUser(api.getClient().getUsername()));
 		msg.setUpdateUrl(url);
 		msg.setTime(id);
 		msg.setId(id);
@@ -52,13 +50,12 @@ public class SendMessagePacket extends Packet
 		return msg;
 	}
 
-	public Message sendMessage(String longId, Message msg)
-	{
+	public Message sendMessage(String longId, Message msg) {
 
 		String id = String.valueOf(System.currentTimeMillis());
 		String url = "https://client-s.gateway.messenger.live.com/v1/users/ME/conversations/" + longId + "/messages";
 
-		msg.setSender(api.getClient().getUser(api.getClient().getUsername()).get());
+		msg.setSender(api.getClient().getUser(api.getClient().getUsername()));
 		msg.setUpdateUrl(url);
 		msg.setTime(id);
 		msg.setId(id);
@@ -66,8 +63,10 @@ public class SendMessagePacket extends Packet
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setType(RequestType.POST);
 
-		packet.setData(new JSONObject().put("content", msg.getMessage()).put("messagetype", "RichText").put("contenttype", "text").put("clientmessageid", id).toString());
-
+		try {
+			packet.setData(new JSONObject().put("content", msg.getMessage()).put("messagetype", "RichText").put("contenttype", "text").put("clientmessageid", id).toString());
+		} catch (Exception e) {}
+		
 		packet.setUrl(url);
 		packet.makeRequest();
 
@@ -75,7 +74,6 @@ public class SendMessagePacket extends Packet
 	}
 
 	@Override
-	public void init()
-	{
+	public void init() {
 	}
 }

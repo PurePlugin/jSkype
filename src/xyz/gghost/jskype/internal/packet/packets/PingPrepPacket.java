@@ -12,64 +12,54 @@ import xyz.gghost.jskype.internal.packet.Packet;
 import xyz.gghost.jskype.internal.packet.PacketBuilder;
 import xyz.gghost.jskype.internal.packet.PacketBuilderUploader;
 import xyz.gghost.jskype.internal.packet.RequestType;
+import org.json.JSONException;
 
-public class PingPrepPacket extends Packet
-{
-	public PingPrepPacket(SkypeAPI api)
-	{
+public class PingPrepPacket extends Packet {
+	public PingPrepPacket(SkypeAPI api) {
 		super(api);
 	}
 
-	public String urlToId(String url, String groupId)
-	{
+	public String urlToId(String url, String groupId) {
 		String id = getId();
 
-		if (id == null)
-		{
+		if (id == null) {
 			api.getLogger().severe("Failed to get id");
 			return null;
 		}
 
-		if (!allowRead(id, groupId))
-		{
+		if (!allowRead(id, groupId)) {
 			api.getLogger().severe("Failed to set perms");
 			return null;
 		}
 
-		if (!writeData(id, url))
-		{
+		if (!writeData(id, url)) {
 			api.getLogger().severe("Failed to set image data");
 			return null;
 		}
 		return id;
 	}
 
-	public String urlToId(File url, String groupId)
-	{
+	public String urlToId(File url, String groupId) {
 		String id = getId();
 
-		if (id == null)
-		{
+		if (id == null) {
 			api.getLogger().severe("Failed to get id");
 			return null;
 		}
 
-		if (!allowRead(id, groupId))
-		{
+		if (!allowRead(id, groupId)) {
 			api.getLogger().severe("Failed to set perms");
 			return null;
 		}
 
-		if (!writeData(id, url))
-		{
+		if (!writeData(id, url)) {
 			api.getLogger().severe("Failed to set image data");
 			return null;
 		}
 		return id;
 	}
 
-	public String getId()
-	{
+	public String getId() {
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setUrl("https://api.asm.skype.com/v1/objects");
 		packet.setData(" ");
@@ -85,11 +75,14 @@ public class PingPrepPacket extends Packet
 
 		if (data == null)
 			return null;
-		return new JSONObject(data).getString("id");
+		try {
+			return new JSONObject(data).getString("id");
+		} catch (JSONException e) {
+			return null;
+		}
 	}
 
-	public boolean allowRead(String id, String longId)
-	{
+	public boolean allowRead(String id, String longId) {
 		PacketBuilder packet = new PacketBuilder(api);
 		packet.setUrl("https://api.asm.skype.com/v1/objects/" + id + "/permissions");
 
@@ -105,10 +98,8 @@ public class PingPrepPacket extends Packet
 		return data != null;
 	}
 
-	public boolean writeData(String id, String url)
-	{
-		try
-		{
+	public boolean writeData(String id, String url) {
+		try {
 
 			URL image = new URL(url);
 			InputStream data = image.openStream();
@@ -116,7 +107,7 @@ public class PingPrepPacket extends Packet
 			PacketBuilderUploader packet = new PacketBuilderUploader(api);
 			packet.setUrl("https://api.asm.skype.com/v1/objects/" + id + "/content/imgpsh");
 			packet.setSendLoginHeaders(false); // Disable skype for web
-												// authentication
+			// authentication
 			packet.setFile(true);
 			packet.addHeader("Authorization", "skype_token " + api.getClient().getAuth().getLoginToken().getXToken()); // Use
 			// the
@@ -129,26 +120,22 @@ public class PingPrepPacket extends Packet
 			String dataS = packet.makeRequest(data);
 			if (dataS == null)
 				return false;
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 		return true;
 	}
 
-	public boolean writeData(String id, File url)
-	{
-		try
-		{
+	public boolean writeData(String id, File url) {
+		try {
 			InputStream data = new FileInputStream(url);
 
 			PacketBuilderUploader packet = new PacketBuilderUploader(api);
 
 			packet.setUrl("https://api.asm.skype.com/v1/objects/" + id + "/content/imgpsh");
 			packet.setSendLoginHeaders(false); // Disable skype for web
-												// authentication
+			// authentication
 			packet.setFile(true);
 			packet.addHeader("Authorization", "skype_token " + api.getClient().getAuth().getLoginToken().getXToken()); // Use
 			// the
@@ -163,9 +150,7 @@ public class PingPrepPacket extends Packet
 			if (dataS == null)
 				return false;
 
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -173,7 +158,6 @@ public class PingPrepPacket extends Packet
 	}
 
 	@Override
-	public void init()
-	{
+	public void init() {
 	}
 }
